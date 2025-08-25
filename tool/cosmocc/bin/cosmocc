@@ -681,7 +681,7 @@ set -- \
 log_command "$@"
 "$@" || Exit
 
-if [ x"$MODE" != "optlinux" ]; then
+if [ x"$MODE" != x"optlinux" ]; then
   set -- \
   "$BIN/pecheck" "$OUTPUT"
   log_command "$@"
