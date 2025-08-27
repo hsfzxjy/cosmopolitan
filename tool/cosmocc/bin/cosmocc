@@ -150,7 +150,7 @@ for x; do
          [ x"$x" != x"${x%.dll}" ] ||
          [ x"$x" != x"${x%.dylib}" ]; then
       fatal_error "$x: dynamic shared object input files not supported"
-    elif [ x"$x" != x"-" ] && ! ([ -e "$x" ] && [ ! -d "$x"]); then
+    elif [ x"$x" != x"-" ] && ! ([ -e "$x" ] && [ ! -d "$x" ]); then
       fatal_error "$x: no such file"
     fi
     INPUT_FILE_COUNT=$((INPUT_FILE_COUNT + 1))
