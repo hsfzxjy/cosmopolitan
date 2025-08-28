@@ -265,6 +265,9 @@ EOF
   elif [ x"$x" = x"-dumpversion" ]; then
     echo $GCC_VERSION
     Exit 0
+  elif [ x"$x" = x"-dumpmachine" ]; then
+    echo "x86_64-unknown-cosmo"
+    Exit 0
   elif [ x"$x" = x"-x" ]; then
     NEED_X=1
     continue
