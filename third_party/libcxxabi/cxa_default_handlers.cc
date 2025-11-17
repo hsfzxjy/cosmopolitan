@@ -61,7 +61,9 @@ static void demangling_terminate_handler()
             exception_header + 1;
     const __shim_type_info* thrown_type =
         static_cast<const __shim_type_info*>(exception_header->exceptionType);
-    auto name = demangle(thrown_type->name());
+    // [hsfzxjy]: brutely disable demangle, wait for [jart]'s upstream
+    // auto name = demangle(thrown_type->name());
+    const char* name = thrown_type->name();
     // If the uncaught exception can be caught with std::exception&
     const __shim_type_info* catch_type =
         static_cast<const __shim_type_info*>(&typeid(std::exception));
