@@ -149,7 +149,8 @@ for x; do
        [ x"$x" = x"${x#-*}" ]; then  # !startswith(x, "-")
     if [ x"$x" != x"${x%.s}" ] ||
        [ x"$x" != x"${x%.S}" ]; then
-      fatal_error "$x: assembler input files not supported"
+      :
+      # fatal_error "$x: assembler input files not supported"
     elif [ x"$x" != x"${x%.so}" ] ||
          [ x"$x" != x"${x%.dll}" ] ||
          [ x"$x" != x"${x%.dylib}" ]; then
