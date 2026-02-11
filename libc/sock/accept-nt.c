@@ -44,6 +44,7 @@ __msabi extern typeof(__sys_ioctlsocket_nt) *const __imp_ioctlsocket;
 
 textwindows static int sys_accept_nt_impl(struct Fd *f,
                                           struct sockaddr_storage *addr,
+                                          uint32_t *opt_inout_addrsize,
                                           int accept4_flags,
                                           sigset_t waitmask) {
 
@@ -63,8 +64,11 @@ textwindows static int sys_accept_nt_impl(struct Fd *f,
     // perform non-blocking accept
     int32_t addrsize = sizeof(*addr);
     struct sockaddr *paddr = (struct sockaddr *)addr;
-    if ((handle = WSAAccept(f->handle, paddr, &addrsize, 0, 0)) != -1)
+    if ((handle = WSAAccept(f->handle, paddr, &addrsize, 0, 0)) != -1) {
+      if (opt_inout_addrsize)
+        *opt_inout_addrsize = addrsize;
       break;
+    }
 
     // return on genuine errors
     uint32_t err = WSAGetLastError();
@@ -119,10 +123,10 @@ textwindows static int sys_accept_nt_impl(struct Fd *f,
 }
 
 textwindows int sys_accept_nt(struct Fd *f, struct sockaddr_storage *addr,
-                              int accept4_flags) {
+                              uint32_t *opt_inout_addrsize, int accept4_flags) {
   int rc;
   BLOCK_SIGNALS;
-  rc = sys_accept_nt_impl(f, addr, accept4_flags, _SigMask);
+  rc = sys_accept_nt_impl(f, addr, opt_inout_addrsize, accept4_flags, _SigMask);
   ALLOW_SIGNALS;
   return rc;
 }

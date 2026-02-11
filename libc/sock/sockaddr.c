@@ -26,19 +26,19 @@
 #include "libc/sysv/consts/af.h"
 
 // computes byte length of socket address
-uint8_t __get_sockaddr_len(const struct sockaddr_storage *addr) {
-  if (addr->ss_family == AF_INET) {
-    return sizeof(struct sockaddr_in);
-  } else if (addr->ss_family == AF_INET6) {
-    return sizeof(struct sockaddr_in6);
-  } else if (addr->ss_family == AF_UNIX) {
-    struct sockaddr_un *sun = (struct sockaddr_un *)addr;
-    return sizeof(sun->sun_family) +
-           strnlen(sun->sun_path, sizeof(sun->sun_path)) + 1;
-  } else {
-    return sizeof(struct sockaddr_storage);
-  }
-}
+// uint8_t __get_sockaddr_len(const struct sockaddr_storage *addr) {
+//   if (addr->ss_family == AF_INET) {
+//     return sizeof(struct sockaddr_in);
+//   } else if (addr->ss_family == AF_INET6) {
+//     return sizeof(struct sockaddr_in6);
+//   } else if (addr->ss_family == AF_UNIX) {
+//     struct sockaddr_un *sun = (struct sockaddr_un *)addr;
+//     return sizeof(sun->sun_family) +
+//            strnlen(sun->sun_path, sizeof(sun->sun_path)) + 1;
+//   } else {
+//     return sizeof(struct sockaddr_storage);
+//   }
+// }
 
 // converts bsd sockaddr to cosmo abi
 void __convert_bsd_to_sockaddr(struct sockaddr_storage *addr) {
@@ -50,13 +50,14 @@ void __convert_bsd_to_sockaddr(struct sockaddr_storage *addr) {
 }
 
 // converts cosmo sockaddr abi to bsd
-void __convert_sockaddr_to_bsd(struct sockaddr_storage *addr) {
+void __convert_sockaddr_to_bsd(struct sockaddr_storage *addr,
+                               uint32_t addrsize) {
   uint8_t len;
   union {
     struct sockaddr cosmo;
     struct sockaddr_bsd bsd;
   } *pun = (void *)addr;
-  len = __get_sockaddr_len(addr);
+  len = addrsize;
   pun->bsd.sa_family = pun->cosmo.sa_family;
   pun->bsd.sa_len = len;
 }
@@ -69,11 +70,6 @@ void __write_sockaddr(const struct sockaddr_storage *addr, void *out_addr,
   if (!inout_addrsize)
     return;
   uint32_t insize = *inout_addrsize;
-  if (insize)
-    bzero(out_addr, insize);
-  uint32_t outsize = __get_sockaddr_len(addr);
-  uint32_t copysize = MIN(insize, outsize);
-  if (copysize)
-    memcpy(out_addr, addr, copysize);
-  *inout_addrsize = outsize;
+  bzero(out_addr, insize);
+  memcpy(out_addr, addr, insize);
 }

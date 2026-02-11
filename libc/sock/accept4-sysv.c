@@ -28,17 +28,20 @@
 #include "libc/sysv/consts/sock.h"
 #include "libc/sysv/errfuns.h"
 
-int sys_accept4(int server, struct sockaddr_storage *addr, int flags) {
+int sys_accept4(int server, struct sockaddr_storage *addr,
+                uint32_t *opt_inout_addrsize, int flags) {
   uint32_t size = sizeof(*addr);
+  if (!opt_inout_addrsize)
+    opt_inout_addrsize = &size;
   int olderr, client, file_mode;
   olderr = errno;
-  client = __sys_accept4(server, addr, &size, flags);
+  client = __sys_accept4(server, addr, opt_inout_addrsize, flags);
   if (client == -1 && errno == ENOSYS) {
     // XNU/RHEL5/etc. don't support accept4(), but it's easilly polyfilled
     errno = olderr;
     if (flags & ~(SOCK_CLOEXEC | SOCK_NONBLOCK))
       return einval();
-    if ((client = __sys_accept(server, addr, &size, 0)) != -1) {
+    if ((client = __sys_accept(server, addr, opt_inout_addrsize, 0)) != -1) {
       // __sys_accept() has inconsistent flag inheritance across platforms
       // this is one of the issues that accept4() was invented for solving
       unassert((file_mode = __sys_fcntl(client, F_GETFD)) != -1);

@@ -70,6 +70,8 @@ static int __getsockpeername(int fd, struct sockaddr *out_addr,
   int rc;
   struct sockaddr_storage ss = {0};
   uint32_t size = sizeof(ss);
+  if (!inout_addrsize)
+    inout_addrsize = &size;
 
   if (kisdangerous(out_addr) || kisdangerous(inout_addrsize)) {
     rc = efault();
@@ -90,7 +92,7 @@ static int __getsockpeername(int fd, struct sockaddr *out_addr,
       rc = ebadf();
     }
   } else {
-    rc = impl_sysv(fd, &ss, &size);
+    rc = impl_sysv(fd, &ss, inout_addrsize);
   }
 
   if (!rc) {

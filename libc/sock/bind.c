@@ -26,6 +26,7 @@
 #include "libc/sock/struct/sockaddr.h"
 #include "libc/sock/struct/sockaddr.internal.h"
 #include "libc/sock/syscall_fd.internal.h"
+#include "libc/sysv/consts/af.h"
 #include "libc/sysv/errfuns.h"
 #include "libc/sysv/pib.h"
 
@@ -49,10 +50,10 @@
  */
 int bind(int fd, const struct sockaddr *addr, uint32_t addrsize) {
   int rc;
-  if (addrsize < sizeof(struct sockaddr)) {
-    rc = einval();
-  } else if (kisdangerous(addr)) {
+  if (kisdangerous(addr)) {
     rc = efault();
+  } else if (addrsize < sizeof(struct sockaddr) && addr->sa_family != AF_UNIX) {
+    rc = einval();
   } else if (__isfdkind(fd, kFdZip)) {
     rc = enotsock();
   } else if (!IsWindows()) {

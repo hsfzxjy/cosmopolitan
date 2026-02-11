@@ -6,7 +6,7 @@
 #include "libc/sock/struct/sockaddr.h"
 COSMOPOLITAN_C_START_
 
-int sys_accept_nt(struct Fd *, struct sockaddr_storage *, int);
+int sys_accept_nt(struct Fd *, struct sockaddr_storage *, uint32_t *, int);
 int sys_bind_nt(struct Fd *, const void *, uint32_t);
 int sys_closesocket_nt(struct Fd *);
 int sys_ioctlsocket_nt(struct Fd *);

@@ -35,7 +35,7 @@ int32_t __sys_getsockname(int32_t, void *, uint32_t *);
 int32_t __sys_socket(int32_t, int32_t, int32_t);
 int32_t __sys_socketpair(int32_t, int32_t, int32_t, int32_t[2]);
 
-int32_t sys_accept4(int32_t, struct sockaddr_storage *, int) __wur;
+int32_t sys_accept4(int32_t, struct sockaddr_storage *, uint32_t *, int) __wur;
 int32_t sys_bind(int32_t, const void *, uint32_t);
 int32_t sys_connect(int32_t, const void *, uint32_t);
 int32_t sys_getsockopt(int32_t, int32_t, int32_t, void *, uint32_t *);
