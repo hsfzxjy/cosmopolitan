@@ -40,8 +40,8 @@
 #include "libc/sysv/pib.h"
 #if SupportsWindows()
 
-__msabi extern typeof(WaitForMultipleObjects)
-    *const __imp_WaitForMultipleObjects;
+__msabi extern typeof(WaitForMultipleObjects) *const
+    __imp_WaitForMultipleObjects;
 
 // turns some win32 wait statuses into unix style ones
 textwindows static int __proc_wstatus(uint32_t dwExitCode) {
@@ -77,7 +77,7 @@ textwindows static int __proc_wstatus(uint32_t dwExitCode) {
     case kNtStatusAssertionFailure:
       return SIGABRT;
     default:
-      return dwExitCode;
+      return dwExitCode << 8;
   }
 }
 

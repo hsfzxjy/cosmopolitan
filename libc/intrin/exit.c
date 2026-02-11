@@ -89,7 +89,7 @@ wontreturn void _Exit(int exitcode) {
     // What Microsoft calls an exit code, POSIX calls a status code. See
     // also the WEXITSTATUS() and WIFEXITED() macros that POSIX defines.
     waitstatus = exitcode;
-    waitstatus <<= 8;
+    // waitstatus <<= 8;
     // "The GetExitCodeProcess function returns a valid error code
     //  defined by the application only after the thread terminates.
     //  Therefore, an application should not use kNtStillActive (259) as
