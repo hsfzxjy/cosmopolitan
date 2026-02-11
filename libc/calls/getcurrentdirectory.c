@@ -43,5 +43,5 @@ textwindows uint32_t GetCurrentDirectory(uint32_t nBufferLength,
   NTTRACE("GetCurrentDirectory(%u, [%#!hs]) → {%u, %d}", nBufferLength,
           dwLen && dwLen < nBufferLength ? out_lpBuffer : u"n/a", dwLen,
           GetLastError());
-  return dwLen;
+  return dwLen < nBufferLength ? dwLen : dwLen + 1;
 }
