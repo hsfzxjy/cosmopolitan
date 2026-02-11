@@ -757,7 +757,7 @@ ape_idata_idtsize = LINK_WINDOWS ? ape_idata_idtend - ape_idata_idt : 0;
 v_ntdllchar = LINK_WINDOWS ? 288 : 0;
 v_ntsubversion = LINK_WINDOWS ? 6 : 5;
 v_ntsubsystem = (LINK_WINDOWS
-                 ? (DEFINED(GetMessage)
+                 ? (DEFINED(GetMessage) && !DEFINED(__COSMO_WIN32_FORCE_CUI)
                     ? kNtImageSubsystemWindowsGui
                     : kNtImageSubsystemWindowsCui)
                  : kNtImageSubsystemEfiApplication);
