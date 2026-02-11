@@ -17,6 +17,9 @@
 │ PERFORMANCE OF THIS SOFTWARE.                                                │
 ╚─────────────────────────────────────────────────────────────────────────────*/
 #include "libc/dce.h"
+#include "libc/intrin/getenv.h"
+#include "libc/intrin/safemacros.h"
+#include "libc/log/libfatal.internal.h"
 #include "libc/runtime/internal.h"
 #include "libc/runtime/runtime.h"
 #include "libc/runtime/symbols.internal.h"
@@ -41,7 +44,8 @@ textstartup int ftrace_init(void) {
   if (IsModeDbg() || strace_enabled(0) > 0) {
     GetSymbolTable();
   }
-  if (__intercept_flag(&__argc, __argv, "--ftrace")) {
+  if (__intercept_flag(&__argc, __argv, "--ftrace") ||
+      __atoul(nulltoempty(__getenv(__envp, "FTRACE").s))) {
     ftrace_install();
     ftrace_enabled(+1);
   }
