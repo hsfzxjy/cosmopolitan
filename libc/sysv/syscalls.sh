@@ -267,8 +267,8 @@ scall	sys_keyctl		0xfffffffffffff0fa	0x0db	globl # no wrapper
 scall	sys_ioprio_set		0xfffffffffffff0fb	0x01e	globl
 scall	sys_ioprio_get		0xfffffffffffff0fc	0x01f	globl
 scall	sys_inotify_init	0xfffffffffffff0fd	0xfff	globl # no wrapper
-scall	sys_inotify_add_watch	0xfffffffffffff0fe	0xfff	globl # no wrapper
-scall	sys_inotify_rm_watch	0xfffffffffffff0ff	0xfff	globl # no wrapper
+scall	sys_inotify_add_watch	0xfffffffffffff0fe	0x01b	globl # no wrapper
+scall	sys_inotify_rm_watch	0xfffffffffffff0ff	0x01c	globl # no wrapper
 scall	__sys_openat		0x9d49419f329cf901	0x838	globl hidden # Linux 2.6.16+ (c. 2007)
 scall	__sys_openat_nc		0x1d41411f321d0101	0x038	globl hidden # openat_nocancel() on xnu
 scall	sys_mkdirat		0x1cd13e1f021db102	0x022	globl hidden
@@ -413,6 +413,7 @@ scall	sys_minherit		0x1110fa0fa20fafff	0xfff	globl # no wrapper
 scall	sys_pathconf		0x0bf0bf0bf20bffff	0xfff	globl # no wrapper
 scall	sys_sysctl		0x0ca0ca0ca20cafff	0xfff	globl # no wrapper
 #──────────────────XNU & FREEBSD & NETBSD────────────────────────────────────
+scall sys_sysctlbyname  0xffffff23a2112fff 0xfff globl
 scall	sys_sem_init		0x0f7fff194fffffff	0xfff	globl
 scall	sys_sem_destroy		0x0fffff198fffffff	0xfff	globl
 scall	sys_sem_open		0x0f8fff195210cfff	0xfff	globl
@@ -505,7 +506,7 @@ scall	sys_bsdthread_register	0xfffffffff216efff	0xfff	globl hidden
 #scall	fmount			0xfffffffff220efff	0xfff	globl
 #scall	fs_snapshot		0xfffffffff2206fff	0xfff	globl
 #scall	fsctl			0xfffffffff20f2fff	0xfff	globl
-#scall	fsetattrlist		0xfffffffff20e5fff	0xfff	globl
+scall	fsetattrlist		0xfffffffff20e5fff	0xfff	globl
 #scall	fstat_extended		0xfffffffff2119fff	0xfff	globl
 #scall	fsync_nocancel		0xfffffffff2198fff	0xfff	globl
 #scall	getattrlist		0xfffffffff20dcfff	0xfff	globl
@@ -597,7 +598,7 @@ scall	sys_bsdthread_register	0xfffffffff216efff	0xfff	globl hidden
 #scall	sendmsg_x		0xfffffffff21e1fff	0xfff	globl
 #scall	sendto_nocancel		0xfffffffff219dfff	0xfff	globl
 #scall	setattrlist		0xfffffffff20ddfff	0xfff	globl
-#scall	setattrlistat		0xfffffffff220cfff	0xfff	globl
+scall	setattrlistat		0xfffffffff220cfff	0xfff	globl
 #scall	setprivexec		0xfffffffff2098fff	0xfff	globl
 #scall	setsgroups		0xfffffffff211ffff	0xfff	globl
 #scall	settid			0xfffffffff211dfff	0xfff	globl
