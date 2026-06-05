@@ -105,6 +105,23 @@ static errno_t pthread_getname_impl(struct PosixThread *pt, char *name,
       return __errno_host2linux(ax);
     }
 
+  } else if (IsFreebsd()) {
+    const char *thr_name =
+        atomic_load_explicit(&pt->pt_freebsd_thr_name, memory_order_acquire);
+    if (thr_name) {
+      size_t len = strlen(thr_name);
+      if (len < size) {
+        memcpy(name, thr_name, len + 1);
+        return 0;
+      } else {
+        memcpy(name, thr_name, size - 1);
+        name[size - 1] = 0;
+        return ERANGE;
+      }
+    } else {
+      name[0] = 0;
+      return 0;
+    }
   } else {
     return ENOSYS;
   }

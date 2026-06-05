@@ -88,6 +88,7 @@ struct PosixThread {
   intptr_t pt_exiter[5];
   pthread_attr_t pt_attr;
   atomic_bool pt_intoff;
+  const char* pt_freebsd_thr_name;
 };
 
 typedef void (*atfork_f)(void);

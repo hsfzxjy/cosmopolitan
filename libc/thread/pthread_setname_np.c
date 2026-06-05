@@ -35,6 +35,22 @@
 #include "libc/thread/thread.h"
 #include "libc/thread/tls.h"
 
+static void store_freebsd_thread_name(struct PosixThread *pt, const char *name,
+                                      int len) {
+  if (IsFreebsd()) {
+    char *new_name = malloc(len + 1);
+    if (!new_name)
+      return;
+    memcpy(new_name, name, len);
+    new_name[len] = 0;
+    const char *old_thr_name = atomic_exchange_explicit(
+        &pt->pt_freebsd_thr_name, new_name, memory_order_acq_rel);
+    if (old_thr_name) {
+      free((void *)old_thr_name);
+    }
+  }
+}
+
 static errno_t pthread_setname_impl(struct PosixThread *pt, const char *name) {
   char path[128], *p;
   int e, fd, rc, tid, len;
@@ -97,6 +113,9 @@ static errno_t pthread_setname_impl(struct PosixThread *pt, const char *name) {
                  : "+a"(ax), "+D"(tid), "+S"(name)
                  : /* no inputs */
                  : "rcx", "rdx", "r8", "r9", "r10", "r11", "memory");
+    if (ax == 0) {
+      store_freebsd_thread_name(pt, name, len);
+    }
     return __errno_host2linux(ax);
 #endif
 
@@ -106,6 +125,9 @@ static errno_t pthread_setname_impl(struct PosixThread *pt, const char *name) {
     register long x1 asm("x1") = (long)name;
     register int x8 asm("x8") = 464;  // thr_set_name
     asm volatile("svc\t0" : "+r"(x0) : "r"(x1), "r"(x8) : "memory");
+    if (x0 == 0) {
+      store_freebsd_thread_name(pt, name, len);
+    }
     return __errno_host2linux(x0);
 #endif
 
