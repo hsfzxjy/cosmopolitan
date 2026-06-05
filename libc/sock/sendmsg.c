@@ -26,9 +26,12 @@
 #include "libc/intrin/fds.h"
 #include "libc/intrin/kprintf.h"
 #include "libc/intrin/strace.h"
+#include "libc/mem/mem.h"
 #include "libc/runtime/runtime.h"
 #include "libc/sock/internal.h"
 #include "libc/sock/sock.h"
+#include "libc/sock/struct/cmsghdr.h"
+#include "libc/sock/struct/cmsghdr.internal.h"
 #include "libc/sock/struct/msghdr.h"
 #include "libc/sock/struct/msghdr.internal.h"
 #include "libc/sock/struct/sockaddr.internal.h"
@@ -51,7 +54,7 @@
  */
 ssize_t sendmsg(int fd, const struct msghdr *msg, int flags) {
   int64_t rc;
-  struct msghdr msg2;
+  struct msghdr_bsd msg2;
   union sockaddr_storage_bsd bsd;
 
   BEGIN_CANCELATION_POINT;
@@ -63,7 +66,7 @@ ssize_t sendmsg(int fd, const struct msghdr *msg, int flags) {
       if (!(rc = sockaddr2bsd(msg->msg_name, msg->msg_namelen, &bsd,
                               &msg2.msg_namelen))) {
         msg2.msg_name = &bsd.sa;
-        rc = sys_sendmsg(fd, &msg2, flags);
+        rc = sys_sendmsg(fd, (void *)&msg2, flags);
       }
     } else {
       rc = sys_sendmsg(fd, msg, flags);

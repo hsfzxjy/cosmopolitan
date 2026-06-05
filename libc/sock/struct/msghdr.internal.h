@@ -9,9 +9,20 @@ struct msghdr_bsd {
   struct iovec *msg_iov;
   uint32_t msg_iovlen; /* « different type */
   void *msg_control;
-  uint64_t msg_controllen;
+  uint32_t msg_controllen;
   uint32_t msg_flags; /* « different type */
 };
+
+static inline void msghdr2bsd(const struct msghdr *msg,
+                              struct msghdr_bsd *out) {
+  out->msg_name = msg->msg_name;
+  out->msg_namelen = msg->msg_namelen;
+  out->msg_iov = msg->msg_iov;
+  out->msg_iovlen = msg->msg_iovlen;
+  out->msg_control = msg->msg_control;
+  out->msg_controllen = msg->msg_controllen;
+  out->msg_flags = msg->msg_flags;
+}
 
 ssize_t sys_sendmsg(int, const struct msghdr *, int);
 ssize_t sys_recvmsg(int, struct msghdr *, int);

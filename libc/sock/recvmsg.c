@@ -53,8 +53,10 @@
  */
 ssize_t recvmsg(int fd, struct msghdr *msg, int flags) {
   ssize_t rc, got;
-  struct msghdr msg2;
+  struct msghdr_bsd msg2;
   union sockaddr_storage_bsd bsd;
+  void *orig_msg_name;
+  uint32_t orig_msg_namelen;
 
   BEGIN_CANCELATION_POINT;
   if (__isfdkind(fd, kFdZip)) {
@@ -62,13 +64,16 @@ ssize_t recvmsg(int fd, struct msghdr *msg, int flags) {
   } else if (!IsWindows()) {
     if (IsBsd() && msg->msg_name) {
       memcpy(&msg2, msg, sizeof(msg2));
-      if (!(rc = sockaddr2bsd(msg->msg_name, msg->msg_namelen, &bsd,
-                              &msg2.msg_namelen))) {
-        msg2.msg_name = &bsd.sa;
-        if ((rc = sys_recvmsg(fd, &msg2, flags)) != -1) {
-          sockaddr2linux(msg2.msg_name, msg2.msg_namelen, msg->msg_name,
-                         &msg->msg_namelen);
-        }
+      msg2.msg_name = &bsd.sa;
+      msg2.msg_namelen = sizeof(bsd);
+      orig_msg_name = msg->msg_name;
+      orig_msg_namelen = msg->msg_namelen;
+      if ((rc = sys_recvmsg(fd, (void *)&msg2, flags)) != -1) {
+        memcpy(msg, &msg2, sizeof(msg2));
+        msg->msg_namelen = orig_msg_namelen;
+        msg->msg_name = orig_msg_name;
+        sockaddr2linux(msg2.msg_name, msg2.msg_namelen, msg->msg_name,
+                       &msg->msg_namelen);
       }
     } else {
       rc = sys_recvmsg(fd, msg, flags);

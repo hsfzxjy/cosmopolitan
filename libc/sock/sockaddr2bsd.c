@@ -37,7 +37,7 @@ int sockaddr2bsd(const void *addr, uint32_t addrsize,
   if (addrsize >= sizeof(((struct sockaddr *)addr)->sa_family)) {
     if (((struct sockaddr *)addr)->sa_family == AF_INET) {
       if (addrsize >= sizeof(struct sockaddr_in)) {
-        out_addr->sin.sin_len = 0;
+        out_addr->sin.sin_len = sizeof(struct sockaddr_in_bsd);
         out_addr->sin.sin_family = AF_INET;
         out_addr->sin.sin_port = ((struct sockaddr_in *)addr)->sin_port;
         out_addr->sin.sin_addr = ((struct sockaddr_in *)addr)->sin_addr;
@@ -49,7 +49,7 @@ int sockaddr2bsd(const void *addr, uint32_t addrsize,
       }
     } else if (((struct sockaddr *)addr)->sa_family == AF_INET6) {
       if (addrsize >= sizeof(struct sockaddr_in6)) {
-        out_addr->sin6.sin6_len = 0;
+        out_addr->sin6.sin6_len = sizeof(struct sockaddr_in6_bsd);
         out_addr->sin6.sin6_family = AF_INET6;
         out_addr->sin6.sin6_port = ((struct sockaddr_in6 *)addr)->sin6_port;
         out_addr->sin6.sin6_flowinfo =
@@ -68,7 +68,7 @@ int sockaddr2bsd(const void *addr, uint32_t addrsize,
           (len = strnlen(((struct sockaddr_un *)addr)->sun_path,
                          addrsize - famsize)) <
               sizeof(out_addr->sun.sun_path)) {
-        out_addr->sun.sun_len = 0;
+        out_addr->sun.sun_len = sizeof(struct sockaddr_un_bsd);
         out_addr->sun.sun_family = AF_UNIX;
         memcpy(out_addr->sun.sun_path, ((struct sockaddr_un *)addr)->sun_path,
                len);
@@ -79,6 +79,11 @@ int sockaddr2bsd(const void *addr, uint32_t addrsize,
       } else {
         return einval();
       }
+    } else if (((struct sockaddr *)addr)->sa_family == AF_UNSPEC) {
+      out_addr->sa.sa_len = sizeof(struct sockaddr_bsd);
+      out_addr->sa.sa_family = AF_UNSPEC;
+      *out_addrsize = sizeof(struct sockaddr_bsd);
+      return 0;
     } else {
       return epfnosupport();
     }
