@@ -59,8 +59,8 @@ ssize_t recvfrom(int fd, void *buf, size_t size, int flags,
   ssize_t rc;
   struct sockaddr_storage addr = {0};
   uint32_t addrsize = sizeof(addr);
-  if (!opt_inout_srcaddrsize)
-    opt_inout_srcaddrsize = &addrsize;
+  if (opt_inout_srcaddrsize && *opt_inout_srcaddrsize < addrsize)
+    addrsize = *opt_inout_srcaddrsize;
   BEGIN_CANCELATION_POINT;
 
   if ((size && kisdangerous(buf)) ||
@@ -71,14 +71,13 @@ ssize_t recvfrom(int fd, void *buf, size_t size, int flags,
   } else if (__isfdkind(fd, kFdZip)) {
     rc = enotsock();
   } else if (!IsWindows()) {
-    rc = sys_recvfrom(fd, buf, size, flags, &addr, opt_inout_srcaddrsize);
+    rc = sys_recvfrom(fd, buf, size, flags, &addr, &addrsize);
   } else if (__isfdopen(fd)) {
     if (__isfdkind(fd, kFdSocket)) {
       rc = sys_recvfrom_nt(fd, (struct iovec[]){{buf, size}}, 1, flags, &addr,
-                           opt_inout_srcaddrsize);
-      if (rc != -1 && opt_inout_srcaddrsize == &addrsize &&
-          *opt_inout_srcaddrsize == sizeof(addr)) {
-        *opt_inout_srcaddrsize = 0;
+                           &addrsize);
+      if (rc != -1 && addrsize == sizeof(addr)) {
+        addrsize = 0;
       }
     } else if (__isfdkind(fd, kFdFile) && !opt_out_srcaddr) { /* socketpair */
       if (!flags) {
@@ -94,11 +93,13 @@ ssize_t recvfrom(int fd, void *buf, size_t size, int flags,
   }
 
   if (rc != -1) {
-    if (*opt_inout_srcaddrsize) {
+    if (addrsize) {
       if (IsBsd()) {
         __convert_bsd_to_sockaddr(&addr);
       }
       __write_sockaddr(&addr, opt_out_srcaddr, opt_inout_srcaddrsize);
+      if (opt_inout_srcaddrsize)
+        *opt_inout_srcaddrsize = addrsize;
     } else {
       *opt_inout_srcaddrsize = 0;
     }

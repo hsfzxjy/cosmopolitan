@@ -57,8 +57,9 @@ int accept4(int fd, struct sockaddr *opt_out_addr, uint32_t *opt_inout_addrsize,
   int rc;
   struct sockaddr_storage ss = {0};
   uint32_t size = sizeof(ss);
-  if (!opt_inout_addrsize)
-    opt_inout_addrsize = &size;
+  if (opt_inout_addrsize && *opt_inout_addrsize < size) {
+    size = *opt_inout_addrsize;
+  }
   BEGIN_CANCELATION_POINT;
 
   if (__isfdkind(fd, kFdZip)) {
@@ -68,7 +69,7 @@ int accept4(int fd, struct sockaddr *opt_out_addr, uint32_t *opt_inout_addrsize,
   } else if (!__isfdopen(fd)) {
     rc = ebadf();
   } else if (__isfdkind(fd, kFdSocket)) {
-    rc = sys_accept_nt(__get_pib()->fds.p + fd, &ss, opt_inout_addrsize, flags);
+    rc = sys_accept_nt(__get_pib()->fds.p + fd, &ss, &size, flags);
   } else {
     rc = enotsock();
   }
@@ -78,6 +79,8 @@ int accept4(int fd, struct sockaddr *opt_out_addr, uint32_t *opt_inout_addrsize,
       __convert_bsd_to_sockaddr(&ss);
     }
     __write_sockaddr(&ss, opt_out_addr, opt_inout_addrsize);
+    if (opt_inout_addrsize)
+      *opt_inout_addrsize = size;
   }
 
   END_CANCELATION_POINT;
