@@ -17,3 +17,5 @@ __pycache__
 /perf.data
 /perf.data.old
 /qemu*core
+
+/.vscode/c_cpp_properties.json
