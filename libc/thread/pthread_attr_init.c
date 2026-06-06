@@ -19,6 +19,7 @@
 #include "libc/runtime/runtime.h"
 #include "libc/runtime/stack.h"
 #include "libc/sysv/consts/auxv.h"
+#include "libc/sysv/consts/sched.h"
 #include "libc/thread/thread.h"
 
 /**
@@ -41,6 +42,7 @@ errno_t pthread_attr_init(pthread_attr_t *attr) {
   *attr = (pthread_attr_t){
       .__stacksize = GetStackSize(),
       .__guardsize = GetGuardSize(),
+      .__schedpolicy = SCHED_OTHER,
   };
   return 0;
 }
