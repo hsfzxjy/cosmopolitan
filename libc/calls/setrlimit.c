@@ -84,8 +84,8 @@ static int setrlimit_impl(int resource, const struct rlimit *rlim) {
     // as a means of preventing further memory growth. Since we polyfill
     // this in userspace, let's just not even bother with the XNU kernel
     rc = 0;
-  } else if (IsXnuSilicon()) {
-    rc = _sysret(__syslib->__setrlimit(sysresource, &sysrlim));
+  } else if (IsXnu()) {
+    rc = _sysret(SLIB2_CALL_N(setrlimit, sysresource, &sysrlim));
   } else {
     rc = sys_setrlimit(sysresource, &sysrlim);
   }

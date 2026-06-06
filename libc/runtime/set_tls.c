@@ -51,7 +51,7 @@ dontinstrument textstartup void __set_tls(struct CosmoTib *tib) {
     sys_set_tls((uintptr_t)tib, 0);
   } else if (IsXnu()) {
     // thread_fast_set_cthread_self has a weird ABI
-    sys_set_tls((intptr_t)tib - 0x30, 0);
+    __set_tls_xnu(tib);
   } else {
     uint64_t val = (uint64_t)tib;
     asm volatile("wrmsr"

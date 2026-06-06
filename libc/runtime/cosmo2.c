@@ -84,7 +84,9 @@ static const char *DecodeMagnum(const char *p, long *r) {
 }
 
 wontreturn textstartup void cosmo(long *sp, struct Syslib *m1, char *exename,
-                                  int os, long *is_freebsd) {
+                                  int os, long *is_freebsd, void *tinysyslib) {
+
+  __tinysyslib = tinysyslib;
 
   // get startup timestamp as early as possible
   // its used by --strace and also kprintf() %T
@@ -127,7 +129,7 @@ wontreturn textstartup void cosmo(long *sp, struct Syslib *m1, char *exename,
   if (!(hostos = os)) {
     if (SupportsFreebsd() && is_freebsd) {
       hostos = _HOSTFREEBSD;
-    } else if (SupportsXnu() && m1) {
+    } else if (SupportsXnu() && (m1 || __tinysyslib)) {
       hostos = _HOSTXNU;
     } else if (SupportsLinux()) {
       hostos = _HOSTLINUX;
@@ -140,7 +142,7 @@ wontreturn textstartup void cosmo(long *sp, struct Syslib *m1, char *exename,
   if (IsFreebsd()) {
     magnums = syscon_freebsd;
   } else if (IsXnu()) {
-    if (!(__syslib = m1)) {
+    if (!((__syslib = m1) || __tinysyslib)) {
       notpossible;
     }
     magnums = syscon_xnu;
@@ -156,7 +158,7 @@ wontreturn textstartup void cosmo(long *sp, struct Syslib *m1, char *exename,
   }
 
   // check system call abi compatibility
-  if (IsXnu() && __syslib->__version < SYSLIB_VERSION_MANDATORY) {
+  if (IsXnu() && __syslib && __syslib->__version < SYSLIB_VERSION_MANDATORY) {
     sys_write(2, "need newer ape loader\n", 22);
     _Exit(127);
   }

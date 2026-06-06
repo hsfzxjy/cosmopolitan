@@ -78,8 +78,8 @@ static int getrlimit_impl(int resource, struct rlimit *rlim) {
 
   // get limit from operating system
   int rc;
-  if (IsXnuSilicon()) {
-    rc = _sysret(__syslib->__getrlimit(sysresource, rlim));
+  if (IsXnu()) {
+    rc = _sysret(SLIB2_CALL_N(getrlimit, sysresource, rlim));
   } else {
     rc = sys_getrlimit(sysresource, rlim);
   }

@@ -23,6 +23,7 @@
 #include "libc/calls/syscall-sysv.internal.h"
 #include "libc/cosmotime.h"
 #include "libc/errno.h"
+#include "libc/intrin/strace.h"
 #include "libc/intrin/weaken.h"
 #include "libc/runtime/syslib.internal.h"
 #include "libc/sock/internal.h"
@@ -34,7 +35,7 @@
 
 int sys_clock_nanosleep_xnu(int clock, int flags, const struct timespec *req,
                             struct timespec *rem) {
-#ifdef __x86_64__
+#if 0
   if (flags & TIMER_ABSTIME) {
     int nerr;
     struct timespec now;
@@ -61,23 +62,24 @@ int sys_clock_nanosleep_xnu(int clock, int flags, const struct timespec *req,
     }
     return rc;
   }
-#else
+#endif
   long res;
   struct timespec abs, now, rel;
   if (_weaken(pthread_testcancel_np) &&  //
       _weaken(pthread_testcancel_np)())
     return ecanceled();
+  SLIB2_CACHE(nanosleep, nanosleep);
   if (flags & TIMER_ABSTIME) {
     abs = *req;
-    if (!(res = __syslib->__clock_gettime(clock, &now))) {
+    if (!(res = SLIB2_CALL_N(clock_gettime, clock, &now))) {
       if (timespec_cmp(abs, now) > 0) {
         rel = timespec_sub(abs, now);
-        res = __syslib->__nanosleep(&rel, 0);
+        res = SLIB2_CALL_V(nanosleep, &rel, 0);
       }
     }
   } else {
     struct timespec remainder;
-    res = __syslib->__nanosleep(req, &remainder);
+    res = SLIB2_CALL_V(nanosleep, req, &remainder);
     if (res == -EINTR && rem)
       *rem = remainder;
   }
@@ -87,5 +89,4 @@ int sys_clock_nanosleep_xnu(int clock, int flags, const struct timespec *req,
     return ecanceled();
   }
   return _sysret(res);
-#endif
 }

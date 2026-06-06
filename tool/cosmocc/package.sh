@@ -301,7 +301,10 @@ rm -f bin/*-gcc-*
 rm -f bin/*-gprof
 rm -f bin/*-strings
 cd "$OLD"
-$DEDUPE -s "$OUTDIR/"
+if [ "$GITHUB_ACTIONS"x = "true"x ]; then
+  # do not dedupe locally since artifacts may be wrongly linked together
+  $DEDUPE -s "$OUTDIR/"
+fi
 
 for arch in $AMD64 $ARM64; do
   mkdir -p "$OUTDIR/$arch-linux-cosmo/lib/"

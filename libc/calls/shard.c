@@ -35,8 +35,8 @@
 static_assert(!(COSMO_SHARDS & (COSMO_SHARDS - 1)),
               "COSMO_SHARDS must be two-power");
 
-__msabi extern typeof(GetCurrentProcessorNumberEx)
-    *const __imp_GetCurrentProcessorNumberEx;
+__msabi extern typeof(GetCurrentProcessorNumberEx) *const
+    __imp_GetCurrentProcessorNumberEx;
 
 static inline unsigned cosmo_shard_murmur3(unsigned h) {
   /* It's important that we hash the thread id. For example, on Windows,
@@ -75,7 +75,7 @@ static unsigned long cosmo_shard_linux(void) {
 
 static unsigned long cosmo_shard_silicon(void) {
   size_t cpu;
-  __syslib->__pthread_cpu_number_np(&cpu);
+  SLIB2(pthread_cpu_number_np)(&cpu);
   return cosmo_shard_modulus(cpu);
 }
 
@@ -102,8 +102,7 @@ static unsigned long cosmo_shard_pick(unsigned long impl(void)) {
 
 static int pthread_cpu_number_np(void) {
   size_t cpu = -1;
-  if (__syslib->__version >= 9)
-    __syslib->__pthread_cpu_number_np(&cpu);
+  SLIB2(pthread_cpu_number_np)(&cpu);
   return cpu;
 }
 

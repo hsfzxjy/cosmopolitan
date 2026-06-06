@@ -22,8 +22,8 @@
 #include "libc/sysv/errfuns.h"
 
 int sysctlnametomib(const char *name, int *mibp, size_t *sizep) {
-  if (__syslib && __syslib->__version >= 10) {
-    return _sysret(__syslib->__sysctlnametomib(name, mibp, sizep));
+  if (__tinysyslib) {
+    return _sysret(SLIB2_CALL_N(sysctlnametomib, name, mibp, sizep));
   } else {
     return enosys();
   }

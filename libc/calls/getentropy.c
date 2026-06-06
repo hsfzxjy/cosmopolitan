@@ -59,9 +59,9 @@ int getentropy(void *p, size_t n) {
   } else if (kisdangerous(p)) {
     rc = efault();
   } else {
-    if (IsXnuSilicon()) {
-      rc = _sysret(__syslib->__getentropy(p, n));
-    } else if (IsXnu() || IsOpenbsd()) {
+    if (IsXnu()) {
+      rc = _sysret(SLIB2_CALL_N(getentropy, p, n));
+    } else if (IsOpenbsd()) {
       rc = sys_getentropy(p, n);
       if (rc > 0) {
         // TODO(jart): check kernel code to see if needed

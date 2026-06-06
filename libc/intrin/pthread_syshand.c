@@ -24,7 +24,7 @@
 
 intptr_t _pthread_syshand(struct PosixThread *pt) {
   intptr_t syshand;
-  unassert(IsWindows() || IsXnuSilicon());
+  unassert(IsWindows() || IsXnu());
   for (;;) {
     syshand = atomic_load_explicit(&pt->tib->tib_syshand, memory_order_acquire);
     if (syshand)

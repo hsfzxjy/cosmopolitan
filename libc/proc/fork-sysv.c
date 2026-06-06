@@ -26,6 +26,9 @@
 
 static int sys_fork_impl(void) {
 #ifdef __x86_64__
+  if (IsXnu()) {
+    return _sysret(SLIB2_CALL_N(fork));
+  }
 
   axdx_t ad;
   int ax, dx;
@@ -59,8 +62,8 @@ static int sys_fork_impl(void) {
                  : "i"(220), "r"(r0), "r"(r1), "r"(r2), "r"(r3), "r"(r4)
                  : "x8", "x16", "memory");
     return _sysret(res_x0);
-  } else if (__syslib) {
-    return _sysret(__syslib->__fork());
+  } else if (__tinysyslib) {
+    return _sysret(SLIB2_CALL_N(fork));
   } else {
     int ax;
     axdx_t ad;

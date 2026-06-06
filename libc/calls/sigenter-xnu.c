@@ -501,14 +501,8 @@ forceinline void CopyDubble(uint32_t *p, uintptr_t d) {
   p[1] = u.i[1];
 }
 
-#ifdef __x86_64__
-__privileged void __sigenter_xnu(void *fn, int infostyle, int sig,
-                                 struct siginfo_xnu *xnuinfo,
-                                 struct __darwin_ucontext *xnuctx) {
-#else
 __privileged void __sigenter_xnu(int sig, struct siginfo_xnu *xnuinfo,
                                  struct __darwin_ucontext *xnuctx) {
-#endif
 
   // allocate signal frame on stack
 #pragma GCC push_options
@@ -529,17 +523,16 @@ __privileged void __sigenter_xnu(int sig, struct siginfo_xnu *xnuinfo,
   if (rva >= kSigactionMinRva) {
     flags = pib->sighandflags[sig - 1];
 
-#ifdef __aarch64__
-
     // xnu silicon claims to support sa_resethand but it does nothing
     // this can be tested, since it clears the bit from flags as well
     if (flags & SA_RESETHAND) {
       struct sigaction sa = {0};
-      __syslib->__sigaction(sig, &sa, 0);
+      SLIB2_CALL_N(sigaction, sig, &sa, 0);
       pib->sighandflags[sig - 1] = 0;
       pib->sighandrvas[sig - 1] = 0;
     }
 
+#ifdef __aarch64__
     // unlike amd64, the instruction pointer on arm64 isn't advanced
     // past the debugger breakpoint instruction automatically. we need
     // this so execution can resume after __builtin_trap().
@@ -677,13 +670,4 @@ __privileged void __sigenter_xnu(int sig, struct siginfo_xnu *xnuinfo,
     }
     tib->tib_sigjmpbuf = 0;
   }
-
-#ifdef __x86_64__
-  intptr_t ax;
-  asm volatile("syscall"
-               : "=a"(ax)
-               : "0"(0x20000b8 /* sigreturn */), "D"(xnuctx), "S"(infostyle)
-               : "rcx", "r11", "memory", "cc");
-  notpossible;
-#endif /* __x86_64__ */
 }

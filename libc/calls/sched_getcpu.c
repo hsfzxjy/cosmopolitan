@@ -63,16 +63,14 @@ int sched_getcpu(void) {
     return 64 * pn.Group + pn.Number;
   }
 
-  if (IsXnuSilicon()) {
-    if (__syslib && __syslib->__version >= 9) {
-      errno_t err;
-      size_t out = 0;
-      if ((err = __syslib->__pthread_cpu_number_np(&out))) {
-        errno = err;
-        return -1;
-      }
-      return out;
+  if (IsXnu()) {
+    errno_t err;
+    size_t out = 0;
+    if ((err = SLIB2(pthread_cpu_number_np)(&out))) {
+      errno = err;
+      return -1;
     }
+    return out;
   }
 
 #ifdef __x86_64__

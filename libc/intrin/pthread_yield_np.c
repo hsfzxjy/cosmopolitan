@@ -29,8 +29,8 @@
  * @return 0 on success, or error number on failure
  */
 int pthread_yield_np(void) {
-  if (IsXnuSilicon()) {
-    __syslib->__pthread_yield_np();
+  if (IsXnu()) {
+    SLIB2(pthread_yield_np)();
   } else if (IsOpenbsd()) {
     // sched_yield() is punishingly slow on OpenBSD
     // it's ruinously slow it'll destroy everything

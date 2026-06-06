@@ -23,3 +23,6 @@
 __syslib:
 	.quad	0
 	.endfn	__syslib,globl
+__tinysyslib:
+	.quad 0
+	.endfn __tinysyslib,globl

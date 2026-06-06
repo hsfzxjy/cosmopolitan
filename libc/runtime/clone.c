@@ -135,6 +135,7 @@ textwindows static errno_t CloneWindows(int (*func)(void *), char *stk,
 ////////////////////////////////////////////////////////////////////////////////
 // XNU'S NOT UNIX
 
+#if 0
 void XnuThreadThunk(void *pthread,          // rdi x0
                     int machport,           // rsi x1
                     void *(*func)(void *),  // rdx x2
@@ -216,6 +217,61 @@ static errno_t CloneXnu(int (*fn)(void *), char *stk, size_t stksz, void *arg,
   wt->ptid = ptid;
   wt->tls = tls;
   return sys_clone_xnu(fn, arg, wt, 0, PTHREAD_START_CUSTOM_XNU);
+}
+#endif
+
+dontinstrument static void *XnuThreadMain(void *arg) {
+  struct CloneArgs *wt = arg;
+  atomic_int *ctid = wt->ctid;
+  int tid = atomic_load_explicit(ctid, memory_order_relaxed);
+  __set_tls_xnu(wt->tls);
+  __stack_call(wt->arg, tid, 0, 0, wt->func, wt->sp);
+  atomic_store_explicit(ctid, 0, memory_order_release);
+  ulock_wake(UL_COMPARE_AND_WAIT | ULF_WAKE_ALL, ctid, 0);
+  return 0;
+}
+
+static errno_t CloneXnu(int (*fn)(void *), char *stk, size_t stksz, void *arg,
+                        void *tls, atomic_int *ptid, atomic_int *ctid) {
+
+  // assign tid to new thread
+  static atomic_uint tids;
+  unsigned tid = atomic_fetch_add_explicit(&tids, 1, memory_order_relaxed);
+  tid %= kMaxThreadIds;
+  tid += kMinThreadId;
+  atomic_init(ctid, tid);
+  atomic_init(ptid, tid);
+
+  // pass temp data on stack
+  intptr_t sp, tip;
+  struct CloneArgs *wt;
+  sp = tip = (intptr_t)stk + stksz;
+  sp -= sizeof(struct CloneArgs);
+  sp &= -alignof(struct CloneArgs);
+  wt = (struct CloneArgs *)sp;
+  wt->func = fn;
+  wt->arg = arg;
+  wt->tls = tls;
+  wt->ctid = ctid;
+  wt->sp = tip & -16;
+
+  // ask apple libc to spawn thread
+  errno_t res;
+  pthread_t th;
+#pragma GCC push_options
+#pragma GCC diagnostic ignored "-Walloca-larger-than="
+#define SIZEOF_PTHREAD_ATTR_T 64 * 2
+  void *attr = alloca(SIZEOF_PTHREAD_ATTR_T);
+#pragma GCC pop_options
+  SLIB2(pthread_attr_init)(attr);
+  SLIB2(pthread_attr_setguardsize)(attr, 0);
+  if (!(res = SLIB2_CALL_N(pthread_create, &th, attr, XnuThreadMain, wt))) {
+    atomic_init(ptid, tid);
+    struct CosmoTib *tib = tls;
+    atomic_store_explicit(&tib[0].tib_syshand, th, memory_order_release);
+  }
+  SLIB2(pthread_attr_destroy)(attr);
+  return res;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -500,20 +556,19 @@ static errno_t CloneSilicon(int (*fn)(void *), char *stk, size_t stksz,
   // ask apple libc to spawn thread
   errno_t res;
   pthread_t th;
-  size_t babystack = __syslib->__pthread_stack_min;
 #pragma GCC push_options
 #pragma GCC diagnostic ignored "-Walloca-larger-than="
-  void *attr = alloca(__syslib->__sizeof_pthread_attr_t);
+#define SIZEOF_PTHREAD_ATTR_T 64 * 2
+  void *attr = alloca(SIZEOF_PTHREAD_ATTR_T);
 #pragma GCC pop_options
-  __syslib->__pthread_attr_init(attr);
-  __syslib->__pthread_attr_setguardsize(attr, 0);
-  __syslib->__pthread_attr_setstacksize(attr, babystack);
-  if (!(res = __syslib->__pthread_create(&th, attr, SiliconThreadMain, wt))) {
+  SLIB2(pthread_attr_init)(attr);
+  SLIB2(pthread_attr_setguardsize)(attr, 0);
+  if (!(res = SLIB2(pthread_create)(&th, attr, SiliconThreadMain, wt))) {
     atomic_init(ptid, tid);
     struct CosmoTib *tib = tls;
     atomic_store_explicit(&tib[-1].tib_syshand, th, memory_order_release);
   }
-  __syslib->__pthread_attr_destroy(attr);
+  SLIB2(pthread_attr_destroy)(attr);
   return res;
 }
 

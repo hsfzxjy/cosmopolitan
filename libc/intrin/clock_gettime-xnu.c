@@ -22,10 +22,12 @@
 #include "libc/calls/struct/timeval.internal.h"
 #include "libc/errno.h"
 #include "libc/macros.h"
+#include "libc/runtime/syslib.internal.h"
 #include "libc/sysv/consts/clock.h"
-#ifdef __x86_64__
 
 int sys_clock_gettime_xnu(int clock, struct timespec *ts) {
+  return SLIB2_CALL_N(clock_gettime, clock, ts);
+#if 0
   long ax, dx;
   if (clock == CLOCK_REALTIME) {
     // invoke the system call
@@ -61,6 +63,5 @@ int sys_clock_gettime_xnu(int clock, struct timespec *ts) {
   } else {
     return -EINVAL;
   }
+#endif
 }
-
-#endif /* __x86_64__ */

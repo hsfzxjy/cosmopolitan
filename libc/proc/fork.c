@@ -285,8 +285,8 @@ int fork(void) {
 
     // get new system thread handle
     intptr_t syshand = 0;
-    if (IsXnuSilicon()) {
-      syshand = __syslib->__pthread_self();
+    if (IsXnu()) {
+      syshand = SLIB2_CALL_N(pthread_self);
     } else if (IsWindows()) {
       DuplicateHandle(GetCurrentProcess(), GetCurrentThread(),
                       GetCurrentProcess(), &syshand, 0, false,
@@ -306,11 +306,7 @@ int fork(void) {
       ss.ss_sp = me->tib->tib_sigstack_addr;
       ss.ss_size = me->tib->tib_sigstack_size;
       ss.ss_flags = me->tib->tib_sigstack_flags;
-      if (IsXnuSilicon()) {
-        __syslib->__sigaltstack(&ss, 0);
-      } else {
-        sys_sigaltstack(&ss, 0);
-      }
+      SLIB2(sigaltstack)(&ss, 0);
     }
 
     // turn this optimization back on

@@ -78,20 +78,18 @@ int getcpu(unsigned *out_opt_cpu, unsigned *out_opt_node) {
     return 0;
   }
 
-  if (IsXnuSilicon()) {
-    if (__syslib && __syslib->__version >= 9) {
-      errno_t err;
-      size_t out = 0;
-      if ((err = __syslib->__pthread_cpu_number_np(&out))) {
-        errno = err;
-        return -1;
-      }
-      if (out_opt_cpu)
-        *out_opt_cpu = out;
-      if (out_opt_node)
-        *out_opt_node = 0;
-      return 0;
+  if (IsXnu()) {
+    errno_t err;
+    size_t out = 0;
+    if ((err = SLIB2(pthread_cpu_number_np)(&out))) {
+      errno = err;
+      return -1;
     }
+    if (out_opt_cpu)
+      *out_opt_cpu = out;
+    if (out_opt_node)
+      *out_opt_node = 0;
+    return 0;
   }
 
 #ifdef __x86_64__

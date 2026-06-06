@@ -57,6 +57,7 @@ LIBC_SYSV_A_FILES :=					\
 	libc/sysv/linret.c				\
 	libc/sysv/pib.c					\
 	libc/sysv/pib.h					\
+	libc/sysv/syslib2.c				\
 	libc/sysv/sysv.c				\
 	libc/sysv/tlsasm.S				\
 	libc/sysv/errloc.c				\

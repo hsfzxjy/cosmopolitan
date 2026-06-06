@@ -78,6 +78,20 @@
  * @note this can probably be used as a binfmt_misc interpreter
  */
 
+typedef unsigned long uintptr_t;
+
+#define XNU_IMPORT_ORDINAL(n) \
+  ((uintptr_t)(1ULL << 63) | (uintptr_t)(2ULL << 51) | (uintptr_t)(n))
+
+__attribute__((section(".data.xnu_got"),
+               aligned(8))) uintptr_t __xnu_got_start[] = {
+    XNU_IMPORT_ORDINAL(0), /* dlopen_ptr */
+    XNU_IMPORT_ORDINAL(1), /* dlsym_ptr */
+    XNU_IMPORT_ORDINAL(2), /* dlclose_ptr */
+    XNU_IMPORT_ORDINAL(3), /* dlerror_ptr */
+    XNU_IMPORT_ORDINAL(4), /* __error_ptr */
+};
+
 #define LINUX   1
 #define XNU     8
 #define OPENBSD 16
@@ -223,7 +237,7 @@ struct ApeLoader {
 };
 
 EXTERN_C long SystemCall(long, long, long, long, long, long, long, int);
-EXTERN_C void Launch(void *, long, void *, int, void *)
+EXTERN_C void Launch(void *, long, void *, int, void *, void *)
     __attribute__((__noreturn__));
 
 extern char __executable_start[];
@@ -448,7 +462,21 @@ static int Access(const char *path, int mode, int os) {
 
 static int Msyscall(long p, unsigned long n, int os) {
   if (IsOpenbsd()) {
-    return SystemCall(p, n, 0, 0, 0, 0, 0, 37);
+    struct sigaction_openbsd {
+      void *sa_handler;
+      char sa_mask[4];
+      char sa_flags[4];
+    };
+    int err;
+    struct sigaction_openbsd oldact, ign = {0};
+    ign.sa_handler = (void *)1;
+    err = SystemCall(12, (long)&ign, (long)&oldact, 0, 0, 0, 0, 46);
+    if (err < 0) {
+      return err;
+    }
+    err = SystemCall(p, n, 0, 0, 0, 0, 0, 37);
+    SystemCall(12, (long)&oldact, 0, 0, 0, 0, 0, 46);
+    return err;
   } else {
     return 0;
   }
@@ -799,7 +827,8 @@ __attribute__((__noreturn__)) static void Spawn(int os, char *exe, int fd,
   Msyscall(dynbase + code, codesize, os);
 
   /* call program entrypoint */
-  Launch(IsFreebsd() ? sp : 0, dynbase + e->e_entry, exe, os, sp);
+  Launch(IsFreebsd() ? sp : 0, dynbase + e->e_entry, exe, os, sp,
+         IsXnu() ? __xnu_got_start : 0);
 }
 
 static const char *TryElf(struct ApeLoader *M, union ElfEhdrBuf *ebuf,
@@ -951,7 +980,7 @@ EXTERN_C __attribute__((__noreturn__)) void ApeLoader(long di, long *sp,
   int rc, n;
   unsigned i;
   const char *ape;
-  int c, fd, os, argc;
+  int c, fd, os, argc, argcstrip;
   struct ApeLoader *M;
   char arg0, literally;
   unsigned long pagesz;
@@ -997,8 +1026,14 @@ EXTERN_C __attribute__((__noreturn__)) void ApeLoader(long di, long *sp,
     *auxv = 0;
   }
 
-  /* detect netbsd and find end of words */
+/* detect netbsd and find end of words */
+#if defined(__x86_64__)
   pagesz = 0;
+#elif defined(__aarch64__)
+  if (os == XNU) {
+    pagesz = 0x4000;
+  }
+#endif
   arg0 = 0;
   for (ap = auxv; ap[0]; ap += 2) {
     if (ap[0] == AT_PAGESZ) {
@@ -1021,19 +1056,20 @@ EXTERN_C __attribute__((__noreturn__)) void ApeLoader(long di, long *sp,
   }
 
   /* we can load via shell, shebang, or binfmt_misc */
+  argcstrip = 0;
   if (arg0) {
     literally = 1;
     prog = (char *)sp[2];
-    argc = sp[2] = sp[0] - 2;
-    argv = (char **)((sp += 2) + 1);
+    argcstrip = 2;
+    argv = (char **)((sp + 2) + 1);
   } else if ((literally = argc >= 3 && !StrCmp(argv[1], "-"))) {
     /* if the first argument is a hyphen then we give the user the
        power to change argv[0] or omit it entirely. most operating
        systems don't permit the omission of argv[0] but we do, b/c
        it's specified by ANSI X3.159-1988. */
     prog = (char *)sp[3];
-    argc = sp[3] = sp[0] - 3;
-    argv = (char **)((sp += 3) + 1);
+    argcstrip = 3;
+    argv = (char **)((sp + 3) + 1);
   } else if (argc < 2) {
     ShowUsage(os, 2, 1);
   } else {
@@ -1043,8 +1079,8 @@ EXTERN_C __attribute__((__noreturn__)) void ApeLoader(long di, long *sp,
       ShowUsage(os, 1 + rc, rc);
     }
     prog = (char *)sp[2];
-    argc = sp[1] = sp[0] - 1;
-    argv = (char **)((sp += 1) + 1);
+    argcstrip = 1;
+    argv = (char **)((sp + 1) + 1);
   }
 
   /* allocate loader memory in program's arg block */
@@ -1063,6 +1099,9 @@ EXTERN_C __attribute__((__noreturn__)) void ApeLoader(long di, long *sp,
     ((char *)sp2)[n - 1] = 0;
   }
   MemMove(sp2, sp, (endp - sp) * sizeof(long));
+  sp2 += argcstrip;
+  argc -= argcstrip;
+  *sp2 = argc;
   argv = (char **)(sp2 + 1);
   envp = (char **)(sp2 + 1 + argc + 1);
   auxv = sp2 + (auxv - sp);

@@ -60,7 +60,8 @@ APE_LOADER_LDFLAGS =				\
 	--no-dynamic-linker			\
 	-z norelro				\
 	-z common-page-size=0x4000		\
-	-z max-page-size=0x4000
+	-z max-page-size=0x4000			\
+	-Ttext-segment=0x100000000
 
 APE_LOADER_FLAGS =				\
 	-DNDEBUG				\
@@ -79,24 +80,33 @@ APE_LOADER_FLAGS =				\
 	 $(OUTPUT_OPTION)			\
 	$<
 
-o/$(MODE)/ape/ape.elf: o/$(MODE)/ape/ape.elf.dbg
-	@$(COMPILE) -AOBJCOPY -T$@ $(OBJCOPY) -g $< $@
-	@$(COMPILE) -AFIXUPOBJ -wT$@ $(FIXUPOBJ) $@
+o/$(MODE)/ape/ape.elf: o/$(MODE)/ape/ape.elf.dbg $(OBJBINCOPY_BUILT)
+	@$(COMPILE) -AFIXUPOBJ -wT$@ $(FIXUPOBJ) $<
+	@$(COMPILE) -AOBJBINCOPY -w $(OBJBINCOPY_BUILT) -f -o $@ $<
+
+o/$(MODE)/ape/ape.macho: o/$(MODE)/ape/ape.elf.dbg $(OBJBINCOPY_BUILT)
+	@$(COMPILE) -AFIXUPOBJ -wT$@ $(FIXUPOBJ) $<
+	@$(COMPILE) -AOBJBINCOPY -w $(OBJBINCOPY_BUILT) -fm -o $@ $<
+
 
 o/$(MODE)/ape/ape.elf.dbg:			\
+		o/$(MODE)/ape/loader-macho.o	\
 		o/$(MODE)/ape/start.o		\
 		o/$(MODE)/ape/loader.o		\
 		o/$(MODE)/ape/launch.o		\
-		o/$(MODE)/ape/systemcall.o
+		o/$(MODE)/ape/systemcall.o	\
+		ape/loader.lds
 	@$(COMPILE) -ALINK.elf $(LD) $(APE_LOADER_LDFLAGS) -o $@ $(patsubst %.lds,-T %.lds,$^)
 
 o/$(MODE)/ape/loader.o: ape/loader.c ape/ape.h
-	@$(COMPILE) -AOBJECTIFY.c $(CC) -DSUPPORT_VECTOR=33 -g $(APE_LOADER_FLAGS)
+	@$(COMPILE) -AOBJECTIFY.c $(CC) -DSUPPORT_VECTOR=41 -g $(APE_LOADER_FLAGS)
 o/$(MODE)/ape/start.o: ape/start.S
 	@$(COMPILE) -AOBJECTIFY.S $(OBJECTIFY.S) $(OUTPUT_OPTION) -c $<
 o/$(MODE)/ape/launch.o: ape/launch.S
 	@$(COMPILE) -AOBJECTIFY.S $(OBJECTIFY.S) $(OUTPUT_OPTION) -c $<
 o/$(MODE)/ape/systemcall.o: ape/systemcall.S
+	@$(COMPILE) -AOBJECTIFY.S $(OBJECTIFY.S) $(OUTPUT_OPTION) -c $<
+o/$(MODE)/ape/loader-macho.o: ape/loader-macho.S
 	@$(COMPILE) -AOBJECTIFY.S $(OBJECTIFY.S) $(OUTPUT_OPTION) -c $<
 
 .PHONY: o/$(MODE)/ape
@@ -219,11 +229,11 @@ o/$(MODE)/ape/loader-xnu-gcc.asm: ape/loader.c
 o/$(MODE)/ape/loader-xnu-clang.asm: ape/loader.c
 	@$(COMPILE) -AOBJECTIFY.c $(CLANG) -DSUPPORT_VECTOR=8 -S -g0 $(APE_LOADER_FLAGS)
 
-o/$(MODE)/ape/ape.elf: o/$(MODE)/ape/ape.elf.dbg
-	@$(COMPILE) -AOBJBINCOPY -w $(OBJBINCOPY) -f -o $@ $<
+o/$(MODE)/ape/ape.elf: o/$(MODE)/ape/ape.elf.dbg $(OBJBINCOPY_BUILT)
+	@$(COMPILE) -AOBJBINCOPY -w $(OBJBINCOPY_BUILT) -f -o $@ $<
 
-o/$(MODE)/ape/ape.macho: o/$(MODE)/ape/ape.elf.dbg
-	@$(COMPILE) -AOBJBINCOPY -w $(OBJBINCOPY) -fm -o $@ $<
+o/$(MODE)/ape/ape.macho: o/$(MODE)/ape/ape.elf.dbg $(OBJBINCOPY_BUILT)
+	@$(COMPILE) -AOBJBINCOPY -w $(OBJBINCOPY_BUILT) -fm -o $@ $<
 
 APE_LOADER_LDFLAGS =				\
 	-static					\
@@ -231,7 +241,8 @@ APE_LOADER_LDFLAGS =				\
 	--no-dynamic-linker			\
 	-z separate-code			\
 	-z common-page-size=0x1000		\
-	-z max-page-size=0x10000
+	-z max-page-size=0x10000		\
+	-Ttext-segment=0x7f000000
 
 o/$(MODE)/ape/ape.elf.dbg:			\
 		o/$(MODE)/ape/loader-macho.o	\

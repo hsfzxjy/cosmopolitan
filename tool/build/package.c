@@ -160,7 +160,7 @@ struct Relas {
     size_t Count = (COUNT);                                                 \
     size_t Idx = List->i;                                                   \
     if (Idx + Count < List->n || __grow(&List->p, &List->n, SizE, Count)) { \
-      memcpy(&List->p[Idx], Item, SizE *Count);                             \
+      memcpy(&List->p[Idx], Item, SizE * Count);                            \
       List->i = Idx + Count;                                                \
     } else {                                                                \
       Idx = -1UL;                                                           \
@@ -637,15 +637,16 @@ static void CheckYourPrivilege(struct Package *pkg, struct Packages *deps) {
   const char *name;
   struct Symbol *sym;
   struct Package *dep;
+  const char *secname;
   for (f = i = 0; i < prtu.i; ++i) {
     name = prtu.p[i].symbol_name;
     if (FindSymbol(name, pkg, deps, &dep, &sym) &&
-        dep->sections.p[sym->section].kind == kText) {
+        dep->sections.p[sym->section].kind == kText &&
+        (secname = dep->strings.p + dep->sections.p[sym->section].name) &&
+        !startswith(secname, ".privileged")) {
       tinyprint(2, prtu.p[i].object_path,
                 ": privileged code referenced unprivileged symbol '", name,
-                "' in section '",
-                dep->strings.p + dep->sections.p[sym->section].name, "'\n",
-                NULL);
+                "' in section '", secname, "'\n", NULL);
       ++f;
     }
   }

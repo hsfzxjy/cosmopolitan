@@ -515,8 +515,8 @@ TryAgain:
 static struct DirectMap sys_mmap(void *addr, size_t size, int prot, int flags,
                                  int fd, int64_t off) {
   struct DirectMap d;
-  if (IsXnuSilicon()) {
-    long p = _sysret(__syslib->__mmap(addr, size, prot, flags, fd, off));
+  if (IsXnu()) {
+    long p = _sysret(SLIB2_CALL_N(mmap, addr, size, prot, flags, fd, off));
     d.hand = -1;
     d.addr = (void *)p;
   } else if (IsWindows()) {

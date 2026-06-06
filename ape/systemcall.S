@@ -30,6 +30,7 @@
 SystemCall:
 #ifdef __aarch64__
 	mov	x8,x7
+	mov x16,x7  // XNU assumes sysnum in x16
 	mov	x9,0
 	adds	x9,x9,0
 	svc	0

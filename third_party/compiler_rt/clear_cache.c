@@ -19,8 +19,8 @@ __privileged void __clear_cache(void *start, void *end) {
 
 #ifdef __aarch64__
   if (IsXnu()) {
-    __syslib->__sys_icache_invalidate((char *)start,
-                                      (char *)end - (char *)start);
+    SLIB2(sys_icache_invalidate)((char *)start,
+                                 (char *)end - (char *)start);
     return;
   }
   uint64_t xstart = (uint64_t)(uintptr_t)start;

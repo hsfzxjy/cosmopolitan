@@ -34,6 +34,7 @@
 //	@param	rdx is passed through as-is
 //	@param	rcx is passed through as-is
 //	@param	r8  is stack pointer (becomes zero)
+//  @param  r9  is passed through as-is (tinysyslib)
 //	@noreturn
 Launch:
 #ifdef __aarch64__
@@ -42,7 +43,6 @@ Launch:
 	mov	sp,x4
 	mov	x1,0
 	mov	x4,0
-	mov	x5,0
 	mov	x6,0
 	mov	x7,0
 	mov	x8,0
@@ -72,7 +72,6 @@ Launch:
 
 	mov	%r8,%rsp
 	xor	%r8d,%r8d
-	xor	%r9d,%r9d
 	xor	%r10d,%r10d
 	xor	%r11d,%r11d
 	xor	%r12d,%r12d

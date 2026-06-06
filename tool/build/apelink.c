@@ -263,8 +263,8 @@ static Hacl_Hash_Blake2b_state_t *hasher;
 _Alignas(4096) static char prologue[1048576];
 static const char *macos_silicon_loader_source_path;
 static const char *macos_silicon_loader_source_text;
-static char *macos_silicon_loader_source_ddarg_skip;
-static char *macos_silicon_loader_source_ddarg_size;
+// static char *macos_silicon_loader_source_ddarg_skip;
+// static char *macos_silicon_loader_source_ddarg_size;
 
 static Elf64_Off noteoff;
 static Elf64_Xword notesize;
@@ -1087,7 +1087,8 @@ static void OpenLoader(struct Loader *ldr) {
     ValidateElfImage(ldr->map, ldr->size, ldr->path, true);
     ldr->os = _HOSTLINUX | _HOSTFREEBSD | _HOSTNETBSD | _HOSTOPENBSD;
     ldr->machine = elf->e_machine;
-    if (ldr->machine == EM_NEXGEN32E && FindLoaderEmbeddedMachoHeader(ldr)) {
+    if ((ldr->machine == EM_NEXGEN32E || ldr->machine == EM_AARCH64) &&
+        FindLoaderEmbeddedMachoHeader(ldr)) {
       ldr->os |= _HOSTXNU;
     }
   } else if (READ32LE(ldr->map) == 0xFEEDFACE + 1) {
@@ -1478,7 +1479,8 @@ static char *SecondPass(char *p, struct Input *in) {
   // plan embedded mach-o executable
   if (strategy == kApe &&             //
       (support_vector & _HOSTXNU) &&  //
-      in->elf->e_machine == EM_NEXGEN32E) {
+      (in->elf->e_machine == EM_NEXGEN32E ||
+       in->elf->e_machine == EM_AARCH64)) {
     p = GenerateMacho(p, in);
   }
 
@@ -2018,13 +2020,13 @@ int main(int argc, char *argv[]) {
       p = stpcpy(p, "[ x\"$1\" != x--assimilate ] && ");
     }
     if (!dont_path_lookup_ape_loader) {
-      p = stpcpy(p, "type ape >/dev/null 2>&1 && "
-                    "exec ape \"$o\" \"$@\"\n");
+      p = stpcpy(p, "type ape-x >/dev/null 2>&1 && "
+                    "exec ape-x \"$o\" \"$@\"\n");
     }
 
     // otherwise try to use the ad-hoc self-extracted loader, securely
     if (loaders.n) {
-      p = stpcpy(p, "t=\"${TMPDIR:-${HOME:-.}}/.ape-" APE_VERSION_STR "\"\n"
+      p = stpcpy(p, "t=\"${TMPDIR:-${HOME:-.}}/.ape-x-" APE_VERSION_STR "\"\n"
                     "[ x\"$1\" != x--assimilate ] && "
                     "[ -x \"$t\" ] && "
                     "exec \"$t\" \"$o\" \"$@\"\n");
@@ -2126,8 +2128,6 @@ int main(int argc, char *argv[]) {
       // output native mach-o morph
       for (i = 0; i < inputs.n; ++i) {
         struct Input *in = inputs.p + i;
-        if (in->elf->e_machine != EM_NEXGEN32E)
-          continue;
         if (GetLoader(in->elf->e_machine, _HOSTXNU)) {
           p = stpcpy(p, "if [ x\"$1\" = x--assimilate ]; then\n");
         }
@@ -2148,7 +2148,6 @@ int main(int argc, char *argv[]) {
         }
         p = stpcpy(p, "fi\n");
         gotsome = true;
-        break;
       }
 
       // output mach-o ape loader binary
@@ -2183,6 +2182,7 @@ int main(int argc, char *argv[]) {
         }
       }
 
+#if 0
       if (macos_silicon_loader_source_path) {
         struct Input *in;
         if (!(in = GetInput(EM_AARCH64))) {
@@ -2211,6 +2211,7 @@ int main(int argc, char *argv[]) {
                       "fi\n");  // </if-machine>
         gotsome = true;
       }
+#endif
 
       if (!gotsome) {
         p = stpcpy(p, "true\n");
@@ -2332,6 +2333,7 @@ int main(int argc, char *argv[]) {
     free(compressed_data);
   }
 
+#if 0
   // concatenate ape loader source code
   if (macos_silicon_loader_source_path) {
     char *compressed_data;
@@ -2345,6 +2347,7 @@ int main(int argc, char *argv[]) {
     offset += compressed_size;
     free(compressed_data);
   }
+#endif
 
   // add the zip files
   CopyZips(offset);

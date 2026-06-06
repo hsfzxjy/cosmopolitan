@@ -19,13 +19,19 @@
 #include "libc/calls/calls.h"
 #include "libc/calls/syscall-sysv.internal.h"
 #include "libc/runtime/syslib.internal.h"
+#include "libc/str/str.h"
 #include "libc/sysv/errfuns.h"
+
+extern int sys_sysctlbyname(const char *name, int namelen, void *oldp,
+                            size_t *oldlenp, void *newp, size_t newlen);
 
 int sysctlbyname(const char *name, void *oldp, size_t *oldlenp, void *newp,
                  size_t newlen) {
-  if (__syslib && __syslib->__version >= 10) {
-    return _sysret(__syslib->__sysctlbyname(name, oldp, oldlenp, newp, newlen));
+  if (__tinysyslib) {
+    return _sysret(
+        SLIB2_CALL_N(sysctlbyname, name, oldp, oldlenp, newp, newlen));
   } else {
-    return enosys();
+    return _sysret(
+        sys_sysctlbyname(name, strlen(name), oldp, oldlenp, newp, newlen));
   }
 }

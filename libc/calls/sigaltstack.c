@@ -101,8 +101,8 @@ static int sigaltstack_bsd(const struct sigaltstack *neu,
   }
   if (old)
     oldp = &oldbsd;
-  if (IsXnuSilicon()) {
-    rc = _sysret(__syslib->__sigaltstack(neup, oldp));
+  if (IsXnu()) {
+    rc = _sysret(SLIB2_CALL_N(sigaltstack, neup, oldp));
   } else {
     rc = sys_sigaltstack(neup, oldp);
   }

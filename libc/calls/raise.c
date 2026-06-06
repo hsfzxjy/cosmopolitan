@@ -46,8 +46,8 @@
  */
 int raise(int sig) {
   int rc;
-  if (IsXnuSilicon()) {
-    rc = _sysret(__syslib->__raise(__linux2sig(sig)));
+  if (IsXnu()) {
+    rc = _sysret(SLIB2_CALL_N(raise, __linux2sig(sig)));
   } else if (IsWindows()) {
     if (0 <= sig && sig <= 64) {
       __sig_raise(sig, SI_TKILL);

@@ -24,9 +24,9 @@ int sys_sysctl(int *, unsigned, void *, size_t *, void *, size_t) libcesque;
 
 int sysctl(int *name, unsigned namelen, void *oldp, size_t *oldlenp, void *newp,
            size_t newlen) {
-  if (__syslib && __syslib->__version >= 10) {
+  if (__tinysyslib) {
     return _sysret(
-        __syslib->__sysctl(name, namelen, oldp, oldlenp, newp, newlen));
+        SLIB2_CALL_N(sysctl, name, namelen, oldp, oldlenp, newp, newlen));
   } else {
     return sys_sysctl(name, namelen, oldp, oldlenp, newp, newlen);
   }

@@ -1,7 +1,7 @@
 /*-*- mode:c;indent-tabs-mode:nil;c-basic-offset:2;tab-width:8;coding:utf-8 -*-│
 │ vi: set et ft=c ts=2 sts=2 sw=2 fenc=utf-8                               :vi │
 ╞══════════════════════════════════════════════════════════════════════════════╡
-│ Copyright 2021 Justine Alexandra Roberts Tunney                              │
+│ Copyright 2026 Jingyi Xie                                                    │
 │                                                                              │
 │ Permission to use, copy, modify, and/or distribute this software for         │
 │ any purpose with or without fee is hereby granted, provided that the         │
@@ -16,31 +16,29 @@
 │ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR             │
 │ PERFORMANCE OF THIS SOFTWARE.                                                │
 ╚─────────────────────────────────────────────────────────────────────────────*/
-#include "libc/calls/syscall-sysv.internal.h"
-#include "libc/dce.h"
-#include "libc/intrin/describeflags.h"
-#include "libc/intrin/directmap.h"
-#include "libc/intrin/strace.h"
-#include "libc/runtime/runtime.h"
+#include "libc/macros.h"
 #include "libc/runtime/syslib.internal.h"
 
-/**
- * Unmaps memory directly with system.
- *
- * This function bypasses memtrack. Therefore it won't work on Windows,
- * but it works on everything else including bare metal.
- *
- * @asyncsignalsafe
- */
-int sys_munmap(void *p, size_t n) {
-  int rc;
-  if (IsXnu()) {
-    rc = _sysret(SLIB2_CALL_N(munmap, p, n));
-  } else if (IsMetal()) {
-    rc = sys_munmap_metal(p, n);
-  } else {
-    rc = __sys_munmap(p, n);
+#define RTLD_XNU_DEFAULT ((void *)-2)
+#define INVALID_SYMBOL   ((void *)1)
+
+__privileged static void *__syslib2_lazy_load(const char *name, void **slot) {
+  void *fn = NULL;
+  fn = __tinysyslib->__dlsym(RTLD_XNU_DEFAULT, name);
+  if (!fn) {
+    fn = INVALID_SYMBOL;  // let it crash later when we try to call it
   }
-  KERNTRACE("sys_munmap(%p, %'zu) → %d", p, n, rc);
-  return rc;
+  atomic_store_explicit(slot, fn, memory_order_release);
+  return fn;
 }
+
+#define UU(ret, name, args)                                        \
+  void *__syslib2_func_ptr_##name                                  \
+      __attribute__((section(".bss.syslib2." #name))) = 0;         \
+                                                                   \
+  __attribute__((section(".privileged.syslib2." #name))) void *    \
+  __syslib2_load_ptr_##name(void) {                                \
+    return __syslib2_lazy_load(#name, &__syslib2_func_ptr_##name); \
+  }
+#include "libc/runtime/syslib2.inc"
+#undef UU

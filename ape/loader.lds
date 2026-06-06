@@ -21,6 +21,7 @@ ENTRY(ElfEntrypoint)
 
 PHDRS {
   text PT_LOAD FLAGS(1) FILEHDR PHDRS; /* PF_X */
+  data PT_LOAD FLAGS(6); /* PF_W|PF_R */
   rodata PT_LOAD FLAGS(4); /* PF_R */
   stack PT_GNU_STACK FLAGS(6); /* PF_W|PF_R */
   note PT_NOTE FLAGS(4); /* PF_R */
@@ -28,8 +29,9 @@ PHDRS {
 
 SECTIONS {
 
-  . = SEGMENT_START("text-segment", 0x7f000000);
+  . = SEGMENT_START("text-segment", 0);
   __executable_start = .;
+  __text_start = .;
   . += SIZEOF_HEADERS;
 
   .macho : {
@@ -42,10 +44,24 @@ SECTIONS {
 
   .text : {
     *(.text .text.* .gnu.linkonce.t.*)
+    *(.rodata .rodata.* .gnu.linkonce.r.*)
+    . = ALIGN(CONSTANT(COMMONPAGESIZE));
+    __text_end = .;
   } :text
 
-  .rodata ALIGN(CONSTANT(COMMONPAGESIZE)) : {
-    *(.rodata .rodata.* .gnu.linkonce.r.*)
+  .data ALIGN(CONSTANT(COMMONPAGESIZE)) : {
+    __data_const_start = .;
+    *(.data .data.*)
+    *(.got .got.*)
+    . = ALIGN(CONSTANT(COMMONPAGESIZE));
+    __data_const_end = .;
+  } :data
+
+  .mac_chained_fixups ALIGN(CONSTANT(COMMONPAGESIZE)) : {
+    __linkedit_start = .;
+    __chained_fixups_start = .;
+    KEEP(*(.sort.rodata.mac_chained_fixups))
+    __linkedit_end = .;
   } :rodata
 
   .stack : {
@@ -92,4 +108,23 @@ SECTIONS {
   /DISCARD/ : {
     *(.*)
   }
+
+  SEG_TEXT_VADDR = __text_start;
+  SEG_TEXT_MEMSZ = ALIGN(__text_end - __text_start, CONSTANT(COMMONPAGESIZE));
+  SEG_TEXT_OFFST = __text_start - __executable_start;
+  SEG_TEXT_FILSZ = __text_end - __text_start;
+
+  SEG_DATA_CONST_VADDR = __data_const_start;
+  SEG_DATA_CONST_MEMSZ = ALIGN(__data_const_end - __data_const_start, CONSTANT(COMMONPAGESIZE));
+  SEG_DATA_CONST_OFFST = __data_const_start - __executable_start;
+  SEG_DATA_CONST_FILSZ = __data_const_end - __data_const_start;
+
+  SEG_LINKEDIT_VADDR = __linkedit_start;
+  SEG_LINKEDIT_MEMSZ = ALIGN(__linkedit_end - __linkedit_start, CONSTANT(COMMONPAGESIZE));
+  SEG_LINKEDIT_OFFST = __linkedit_start - __executable_start;
+  SEG_LINKEDIT_FILSZ = __linkedit_end - __linkedit_start;
+
+  XNUENTRY_OFFSET = XnuEntrypoint - __text_start;
+
+  CHAINED_FIXUPS_OFFSET = __chained_fixups_start - __executable_start;
 }

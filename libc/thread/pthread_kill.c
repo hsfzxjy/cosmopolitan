@@ -64,8 +64,8 @@ errno_t pthread_kill(pthread_t thread, int sig) {
   } else if (IsWindows()) {
     err = __sig_kill(pt, sig, SI_TKILL);
   } else {
-    if (IsXnuSilicon()) {
-      err = __syslib->__pthread_kill(_pthread_syshand(pt), __linux2sig(sig));
+    if (IsXnu()) {
+      err = SLIB2_CALL_N(pthread_kill, _pthread_syshand(pt), __linux2sig(sig));
     } else {
       int r = 0;
       int e = errno;

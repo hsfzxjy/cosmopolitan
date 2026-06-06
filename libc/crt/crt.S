@@ -46,7 +46,8 @@ _start:
 #endif /* __x86_64__ */
 
 #if defined(__x86_64__)
-
+	mov %r9, __tinysyslib(%rip)
+	xor %r9d, %r9d
 #if SupportsFreebsd()
 //	detect free besiyata dishmaya
 	test	%rdi,%rdi

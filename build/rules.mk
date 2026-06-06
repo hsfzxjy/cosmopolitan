@@ -30,6 +30,28 @@ o/$(MODE)/%.o: %.c
 	@$(COMPILE) -AOBJECTIFY.c $(OBJECTIFY.c) $(OUTPUT_OPTION) $<
 	@$(COMPILE) -AFIXUPOBJ -wT$@ $(FIXUPOBJ) $@
 
+ifeq ($(MODE),$(HOST_ARCH))
+o/bootstrap/%.o: %.c
+	@$(COMPILE) -AOBJECTIFY.c 					\
+	$(patsubst libc/%,$(COSMOCC)/include/libc/%,$(OBJECTIFY.c))	\
+	$(OUTPUT_OPTION) $<
+	@$(COMPILE) -AFIXUPOBJ -wT$@ build/bootstrap/fixupobj $@
+o/bootstrap/%.dbg: o/bootstrap/%.o
+	@$(COMPILE) -v -ALINK.ape $(LINK)	\
+	-T $(TOOLCHAIN_LIB)/*.lds 		\
+	-L$(TOOLCHAIN_LIB) 			\
+	$(TOOLCHAIN_LIB)/crt.o 			\
+	$(TOOLCHAIN_LIB)/ape-no-modify-self.o 	\
+	$(LD.libs)				\
+	$(TOOL_BUILD_LIBS)			\
+	$^					\
+	-lcosmo					\
+	$(OUTPUT_OPTION)
+else
+o/bootstrap/%.dbg: %.c
+	$(MAKE) MODE=$(HOST_ARCH) m=$(HOST_ARCH) $@
+endif
+
 o/$(MODE)/%.o: o/$(MODE)/%.c
 	@$(COMPILE) -AOBJECTIFY.c $(OBJECTIFY.c) $(OUTPUT_OPTION) $<
 	@$(COMPILE) -AFIXUPOBJ -wT$@ $(FIXUPOBJ) $@
@@ -71,11 +93,11 @@ o/%.a:
 	$(file >$(TMPDIR)/$(subst /,_,$@),$^)
 	@$(COMPILE) -AARCHIVE -wT$@ $(AR) $(ARFLAGS) $@ @$(TMPDIR)/$(subst /,_,$@)
 
-o/%.pkg:
+o/%.pkg: $(PKG)
 	$(file >$(TMPSAFE).args,$(filter %.o,$^))
 	@$(COMPILE) -APACKAGE -wT$@ $(PKG) $(OUTPUT_OPTION) $(addprefix -d,$(filter %.pkg,$^)) @$(TMPSAFE).args
 
-o/$(MODE)/%.pkg:
+o/$(MODE)/%.pkg: $(PKG)
 	$(file >$(TMPSAFE).args,$(filter %.o,$^))
 	@$(COMPILE) -APACKAGE -wT$@ $(PKG) $(OUTPUT_OPTION) $(addprefix -d,$(filter %.pkg,$^)) @$(TMPSAFE).args
 

@@ -2,6 +2,9 @@
 #define COSMOPOLITAN_LIBC_RUNTIME_SYSLIB_H_
 COSMOPOLITAN_C_START_
 
+#include "libc/intrin/atomic.h"
+#undef __raise
+
 /**
  * @fileoverview System DSO interfaces provided by APE loader.
  *
@@ -88,7 +91,46 @@ struct Syslib {
   long (*__sysctlnametomib)(const char *, int *, size_t *);
 };
 
+#define UU(ret, name, args) typedef ret(*__syslib2_##name##_t) args;
+#include "libc/runtime/syslib2.inc"
+#undef UU
+
 extern struct Syslib *__syslib;
+
+struct TinySyslib {
+  void *(*__dlopen)(const char *, int);
+  void *(*__dlsym)(void *, const char *);
+  int (*__dlclose)(void *);
+  char *(*__dlerror)(void);
+  int *(*__error)(void);
+};
+
+extern struct TinySyslib *__tinysyslib;
+
+#define SLIB2(NAME)                                                      \
+  ({                                                                     \
+    extern void *__syslib2_func_ptr_##NAME;                              \
+    extern void *__syslib2_load_ptr_##NAME(void);                        \
+    void *__ptr = atomic_load_explicit(&__syslib2_func_ptr_##NAME,       \
+                                       memory_order_acquire);            \
+    (__syslib2_##NAME##_t)(__ptr ? __ptr : __syslib2_load_ptr_##NAME()); \
+  })
+
+#define SLIB2_ERRNO ((long)((*__tinysyslib->__error())))
+
+#define SLIB2_CALL_V(F, ...)          \
+  ({                                  \
+    long __res = (F)(__VA_ARGS__);    \
+    __res < 0 ? -SLIB2_ERRNO : __res; \
+  })
+
+#define SLIB2_CALL_N(N, ...)            \
+  ({                                    \
+    long __res = SLIB2(N)(__VA_ARGS__); \
+    __res < 0 ? -SLIB2_ERRNO : __res;   \
+  })
+
+#define SLIB2_CACHE(VAR, NAME) __syslib2_##NAME##_t VAR = SLIB2(NAME)
 
 COSMOPOLITAN_C_END_
 #endif /* COSMOPOLITAN_LIBC_RUNTIME_SYSLIB_H_ */

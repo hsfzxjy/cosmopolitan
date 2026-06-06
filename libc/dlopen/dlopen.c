@@ -737,7 +737,7 @@ static void *dlsym_nt(void *handle, const char *name) {
   }
 }
 
-static void *dlopen_silicon(const char *path, int mode) {
+static void *dlopen_xnu(const char *path, int mode) {
   int n;
   int xnu_mode = 0;
   char path2[PATH_MAX + 5];
@@ -762,7 +762,7 @@ static void *dlopen_silicon(const char *path, int mode) {
     path2[n + 3] = 0;
     path = path2;
   }
-  return __syslib->__dlopen(path, xnu_mode);
+  return __tinysyslib->__dlopen(path, xnu_mode);
 }
 
 /**
@@ -795,11 +795,8 @@ void *cosmo_dlopen(const char *path, int mode) {
   BLOCK_CANCELATION;
   if (IsWindows()) {
     res = dlopen_nt(path, mode);
-  } else if (IsXnuSilicon()) {
-    res = dlopen_silicon(path, mode);
   } else if (IsXnu()) {
-    dlerror_set("dlopen() isn't supported on x86-64 MacOS");
-    res = 0;
+    res = dlopen_xnu(path, mode);
   } else if (IsOpenbsd()) {
     // TODO(jart): implement workaround for msyscall() dilemma
     dlerror_set("dlopen() isn't supported on OpenBSD yet");
@@ -846,11 +843,8 @@ void *cosmo_dlsym(void *handle, const char *name) {
   void *func;
   if (IsWindows()) {
     func = dlsym_nt(handle, name);
-  } else if (IsXnuSilicon()) {
-    func = __syslib->__dlsym(handle, name);
   } else if (IsXnu()) {
-    dlerror_set("dlopen() isn't supported on x86-64 MacOS");
-    func = 0;
+    func = __tinysyslib->__dlsym(handle, name);
   } else if (foreign_init()) {
     func = __foreign.dlsym(handle, name);
   } else {
@@ -881,11 +875,8 @@ int cosmo_dlclose(void *handle) {
   int res;
   if (IsWindows()) {
     res = dlclose_nt(handle);
-  } else if (IsXnuSilicon()) {
-    res = __syslib->__dlclose(handle);
   } else if (IsXnu()) {
-    dlerror_set("dlopen() isn't supported on x86-64 MacOS");
-    res = -1;
+    res = __tinysyslib->__dlclose(handle);
   } else if (foreign_init()) {
     res = __foreign.dlclose(handle);
   } else {
@@ -901,8 +892,10 @@ int cosmo_dlclose(void *handle) {
 char *cosmo_dlerror(void) {
   char *res;
   if (IsXnuSilicon()) {
-    res = __syslib->__dlerror();
-  } else if (IsWindows() || IsXnu()) {
+    res = __tinysyslib->__dlerror();
+  } else if (IsXnu()) {
+    res = __tinysyslib->__dlerror();
+  } else if (IsWindows()) {
     res = dlerror_buf;
   } else if (foreign_init()) {
     res = __foreign.dlerror();

@@ -149,3 +149,10 @@ o/$(MODE)/tool/build:							\
 		o/$(MODE)/tool/build/lib				\
 		$(TOOL_BUILD_BINS)					\
 		$(TOOL_BUILD_CHECKS)
+
+ifeq ($(MODE),$(HOST_ARCH))
+o/bootstrap/tool/build/package.dbg: 		\
+	o/$(MODE)/tool/build/lib/getargs.o 	\
+	o/$(MODE)/libc/intrin/strerdoc.o	\
+	o/$(MODE)/libc/intrin/strerrno.o
+endif

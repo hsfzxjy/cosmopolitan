@@ -22,12 +22,18 @@
 
 #ifdef __aarch64__
 
-_start:	mov	x1,sp
+XnuEntrypoint:
+	mov x0,0
+	sub x1, x1, #8  // x1 was argv, argv - 8 = real sp
+	mov x2,#_HOSTXNU
+	bl ApeLoader
+ElfEntrypoint:
+	mov	x1,sp
 	and     sp,x1,#-16
 	mov	x29,0
 	bl	ApeLoader
-	.endfn	_start,globl
-
+	.endfn	ElfEntrypoint,globl
+	.endfn	XnuEntrypoint,globl
 #else
 
 XnuEntrypoint:

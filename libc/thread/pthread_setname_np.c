@@ -25,6 +25,7 @@
 #include "libc/intrin/atomic.h"
 #include "libc/intrin/describeflags.h"
 #include "libc/intrin/strace.h"
+#include "libc/mem/mem.h"
 #include "libc/runtime/syslib.internal.h"
 #include "libc/str/str.h"
 #include "libc/sysv/consts/at.h"
@@ -58,9 +59,9 @@ static errno_t pthread_setname_impl(struct PosixThread *pt, const char *name) {
   len = strlen(name);
   tid = _pthread_tid(pt);
 
-  if (IsXnuSilicon()) {
+  if (IsXnu()) {
     if (pt == _pthread_self()) {
-      __syslib->__pthread_setname_np(name);
+      SLIB2(pthread_setname_np)(name);
       return 0;
     } else {
       return EPERM;

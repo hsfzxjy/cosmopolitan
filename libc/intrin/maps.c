@@ -148,9 +148,9 @@ static void *__maps_valloc(void *addr, size_t size) {
   void *res;
   // MacOS and Windows have bottom-up allocators, so they're unlikely
   // to interfere with our top down allocation style.
-  if (IsXnuSilicon()) {
-    res = (void *)_sysret(__syslib->__mmap(0, size, PROT_READ | PROT_WRITE,
-                                           MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
+  if (IsXnu()) {
+    res = (void *)_sysret(SLIB2_CALL_N(mmap, 0, size, PROT_READ | PROT_WRITE,
+                                       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
   } else if (IsWindows()) {
     res = VirtualAlloc(0, size, kNtMemReserve | kNtMemCommit, kNtPageReadwrite);
   } else {

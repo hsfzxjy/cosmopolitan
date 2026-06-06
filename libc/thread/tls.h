@@ -121,6 +121,15 @@ forceinline void __set_tls_win32(void *tls) {
 #endif
 }
 
+forceinline void __set_tls_xnu(void *tls) {
+#ifdef __x86_64__
+  __asm__ volatile("mov\t%0,%%gs:0x30"
+                   : /* no outputs */
+                   : "r"(tls)
+                   : "memory");
+#endif
+}
+
 #ifdef __x86_64__
 #define __adj_tls(tib) (tib)
 #elif defined(__aarch64__)

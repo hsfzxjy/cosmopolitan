@@ -227,8 +227,8 @@ textstartup void __enable_tls(void) {
                     GetCurrentProcess(), &hThread, 0, false,
                     kNtDuplicateSameAccess);
     atomic_init(&tib->tib_syshand, hThread);
-  } else if (IsXnuSilicon()) {
-    tib->tib_syshand = __syslib->__pthread_self();
+  } else if (IsXnu()) {
+    tib->tib_syshand = SLIB2_CALL_N(pthread_self);
   }
 
   static_assert(!(offsetof(struct CosmoTib, tib_rseq) & 31));

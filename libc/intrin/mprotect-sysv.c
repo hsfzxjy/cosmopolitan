@@ -21,8 +21,8 @@
 #include "libc/runtime/syslib.internal.h"
 
 int sys_mprotect(void *data, size_t size, int prot) {
-  if (IsXnuSilicon()) {
-    return _sysret(__syslib->__mprotect(data, size, prot));
+  if (IsXnu()) {
+    return _sysret(SLIB2_CALL_N(mprotect, data, size, prot));
   } else {
     return __sys_mprotect(data, size, prot);
   }

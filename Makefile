@@ -109,13 +109,14 @@ GZIP = $(BOOTSTRAP)/gzip.ape
 ECHO = $(BOOTSTRAP)/echo.ape
 CHMOD = $(BOOTSTRAP)/chmod.ape
 TOUCH = $(BOOTSTRAP)/touch.ape
-PKG = $(BOOTSTRAP)/package.ape
+PKG = o/bootstrap/tool/build/package.dbg
 MKDEPS = build/bootstrap/mkdeps
 ZIPOBJ = $(BOOTSTRAP)/zipobj
 ZIPCOPY = $(BOOTSTRAP)/zipcopy
 PECHECK = $(BOOTSTRAP)/pecheck
 FIXUPOBJ = build/bootstrap/fixupobj
 OBJBINCOPY = $(BOOTSTRAP)/objbincopy
+OBJBINCOPY_BUILT = o/bootstrap/tool/build/objbincopy.dbg
 MKDIR = $(BOOTSTRAP)/mkdir.ape -p
 COMPILE = $(BOOTSTRAP)/compile.ape -V9 -M2048m -P8192 $(QUOTA)
 
@@ -129,6 +130,14 @@ endif
 ifeq ($(UNAME_M),aarch64)
 MODE := aarch64
 endif
+endif
+
+ifeq ($(UNAME_M),arm64)
+HOST_ARCH := aarch64
+else ifeq ($(UNAME_M),aarch64)
+HOST_ARCH := aarch64
+else
+HOST_ARCH := x86_64
 endif
 
 ifneq ($(findstring aarch64,$(MODE)),)
@@ -151,6 +160,7 @@ export TMPDIR
 COSMOCC = .cosmocc/3.9.2
 BOOTSTRAP = $(COSMOCC)/bin
 TOOLCHAIN = $(COSMOCC)/bin/$(ARCH)-linux-cosmo-
+TOOLCHAIN_LIB = $(COSMOCC)/$(ARCH)-linux-cosmo/lib
 DOWNLOAD := $(shell build/download-cosmocc.sh $(COSMOCC) 3.9.2 f4ff13af65fcd309f3f1cfd04275996fb7f72a4897726628a8c9cf732e850193)
 
 IGNORE := $(shell $(MKDIR) $(TMPDIR))

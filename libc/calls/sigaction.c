@@ -80,10 +80,9 @@ static void sigaction_cosmo2native(union metasigaction *sa) {
     sa->silicon.sa_handler = handler;
     sa->silicon.sa_mask[0] = masklo;
   } else if (IsXnu()) {
-    sa->xnu_in.sa_flags = flags;
-    sa->xnu_in.sa_handler = handler;
-    sa->xnu_in.sa_restorer = restorer;
-    sa->xnu_in.sa_mask[0] = masklo;
+    sa->xnu_out.sa_flags = flags;
+    sa->xnu_out.sa_handler = handler;
+    sa->xnu_out.sa_mask[0] = masklo;
   } else if (IsFreebsd()) {
     sa->freebsd.sa_flags = flags;
     sa->freebsd.sa_handler = handler;
@@ -119,7 +118,7 @@ static void sigaction_native2cosmo(union metasigaction *sa) {
     restorer = sa->linux.sa_restorer;
     masklo = sa->linux.sa_mask[0];
     maskhi = sa->linux.sa_mask[1];
-  } else if (IsXnu()) {
+  } else if (IsXnuSilicon()) {
     flags = sa->silicon.sa_flags;
     handler = sa->silicon.sa_handler;
     masklo = sa->silicon.sa_mask[0];
@@ -247,16 +246,16 @@ static int __sigaction(int sig, const struct sigaction *act,
       arg4 = 8; /* or linux whines */
       arg5 = 0;
     }
-    if (!IsXnuSilicon()) {
-      rc = sys_sigaction(__linux2sig(sig), ap, oldact, arg4, arg5);
-    } else {
-      rc = _sysret(__syslib->__sigaction(__linux2sig(sig), ap, oldact));
+    if (IsXnu()) {
+      rc = _sysret(SLIB2_CALL_N(sigaction, __linux2sig(sig), ap, oldact));
       // xnu silicon claims to support sa_resethand but it does nothing
       // this can be tested, since it clears the bit from flags as well
       if (!rc && oldact &&
           (((struct sigaction_silicon *)oldact)->sa_flags & SA_RESETHAND)) {
         ((struct sigaction_silicon *)oldact)->sa_flags |= SA_RESETHAND;
       }
+    } else {
+      rc = sys_sigaction(__linux2sig(sig), ap, oldact, arg4, arg5);
     }
     if (rc != -1) {
       sigaction_native2cosmo((union metasigaction *)oldact);

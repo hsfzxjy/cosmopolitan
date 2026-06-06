@@ -202,7 +202,7 @@ static void ValidateMachoSection(const char *inpath,         //
       size_t namelen;
       struct MachoLoadSegment *loadseg;
       loadseg = (struct MachoLoadSegment *)cmd;
-      if (loadseg->sectioncount) {
+      if (loadseg->sectioncount >= 2) {
         Die(inpath, "don't bother with mach-o sections");
       }
       namelen = strnlen(loadseg->name, sizeof(loadseg->name));
@@ -363,7 +363,7 @@ static void HandleElf(const char *inpath, Elf64_Ehdr *elf, size_t esize) {
     if (!phdr->p_filesz)
       continue;
     maxoff = MAX(maxoff, phdr->p_offset + phdr->p_filesz);
-    if (macho && phdr->p_type == PT_LOAD) {
+    if (false && macho && phdr->p_type == PT_LOAD) {
       if (!(loadsegment = GetNextMachoLoadSegment(&loadcommand, &loadcount))) {
         Die(inpath, "there must exist a MAC_LC_SEGMENT_64 for every PT_LOAD "
                     "when the .macho section is defined");

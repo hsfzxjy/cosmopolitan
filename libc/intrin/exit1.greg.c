@@ -46,7 +46,9 @@ wontreturn void _Exit1(int rc) {
 #ifdef __x86_64__
   char cf;
   int ax, dx, di, si;
-  if (!IsWindows() && !IsMetal()) {
+  if (IsXnu()) {
+    SLIB2(pthread_exit)(0);
+  } else if (!IsWindows() && !IsMetal()) {
     // exit() on Linux
     // thr_exit() on FreeBSD
     // __threxit() on OpenBSD
@@ -96,7 +98,7 @@ wontreturn void _Exit1(int rc) {
                    : "memory");
     }
   } else if (IsXnu()) {
-    __syslib->__pthread_exit(0);
+    SLIB2(pthread_exit)(0);
   }
   notpossible;
 #else
