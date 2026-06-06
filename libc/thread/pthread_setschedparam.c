@@ -17,6 +17,7 @@
 │ PERFORMANCE OF THIS SOFTWARE.                                                │
 ╚─────────────────────────────────────────────────────────────────────────────*/
 #include "libc/errno.h"
+#include "libc/runtime/syslib.internal.h"
 #include "libc/thread/posixthread.internal.h"
 #include "libc/thread/thread2.h"
 
@@ -44,6 +45,12 @@
 errno_t pthread_setschedparam(pthread_t thread, int policy,
                               const struct sched_param *param) {
   struct PosixThread *pt = (struct PosixThread *)thread;
+  if (IsXnu()) {
+    struct sched_param_xnu param_xnu = {0};
+    param_xnu.param = *param;
+    return SLIB2(pthread_setschedparam)(pt->tib->tib_syshand, policy,
+                                        &param_xnu);
+  }
   pt->pt_attr.__schedpolicy = policy;
   pt->pt_attr.__schedparam = param->sched_priority;
   return _pthread_reschedule(pt);

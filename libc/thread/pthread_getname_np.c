@@ -25,6 +25,7 @@
 #include "libc/intrin/asmflag.h"
 #include "libc/intrin/atomic.h"
 #include "libc/macros.h"
+#include "libc/runtime/syslib.internal.h"
 #include "libc/str/str.h"
 #include "libc/sysv/consts/at.h"
 #include "libc/sysv/consts/o.h"
@@ -122,6 +123,8 @@ static errno_t pthread_getname_impl(struct PosixThread *pt, char *name,
       name[0] = 0;
       return 0;
     }
+  } else if (IsXnu()) {
+    return SLIB2(pthread_getname_np)(pt->tib->tib_syshand, name, size);
   } else {
     return ENOSYS;
   }

@@ -18,6 +18,7 @@
 ╚─────────────────────────────────────────────────────────────────────────────*/
 #include "libc/errno.h"
 #include "libc/intrin/atomic.h"
+#include "libc/runtime/syslib.internal.h"
 #include "libc/thread/posixthread.internal.h"
 #include "libc/thread/thread2.h"
 
@@ -30,6 +31,14 @@ errno_t pthread_getschedparam(pthread_t thread, int *policy,
   if (atomic_load_explicit(&pt->pt_status, memory_order_acquire) >=
       kPosixThreadTerminated) {
     return ESRCH;
+  }
+  if (IsXnu()) {
+    struct sched_param_xnu param_xnu;
+    int rc;
+    rc = SLIB2(pthread_getschedparam)(pt->tib->tib_syshand, policy, &param_xnu);
+    if (!rc)
+      *param = param_xnu.param;
+    return rc;
   }
   *policy = pt->pt_attr.__schedpolicy;
   *param = (struct sched_param){pt->pt_attr.__schedparam};

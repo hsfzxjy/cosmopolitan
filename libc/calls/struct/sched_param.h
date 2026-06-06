@@ -7,6 +7,11 @@ struct sched_param {
   int32_t sched_priority;
 };
 
+struct sched_param_xnu {
+  struct sched_param param;
+  char __opaque[256];
+};
+
 int sched_get_priority_max(int) libcesque;
 int sched_get_priority_min(int) libcesque;
 int sched_getparam(int, struct sched_param *) libcesque;

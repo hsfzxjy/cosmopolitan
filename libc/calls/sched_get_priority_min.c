@@ -21,6 +21,7 @@
 #include "libc/dce.h"
 #include "libc/intrin/describeflags.h"
 #include "libc/intrin/strace.h"
+#include "libc/runtime/syslib.internal.h"
 #include "libc/sysv/consts/sched.h"
 #include "libc/sysv/errfuns.h"
 
@@ -43,7 +44,9 @@ static int sys_sched_get_priority_min_netbsd(int policy) {
  */
 int sched_get_priority_min(int policy) {
   int rc;
-  if (IsNetbsd()) {
+  if (IsXnu()) {
+    rc = SLIB2(sched_get_priority_min)(policy);
+  } else if (IsNetbsd()) {
     rc = sys_sched_get_priority_min_netbsd(policy);
   } else {
     rc = sys_sched_get_priority_min(policy);
