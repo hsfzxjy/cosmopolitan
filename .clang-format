@@ -11,6 +11,7 @@ AllowShortIfStatementsOnASingleLine: false
 KeepEmptyLinesAtTheStartOfBlocks: true
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 IncludeBlocks: Merge
+PointerAlignment: Right
 ---
 Language: Cpp
 AllowShortFunctionsOnASingleLine: false
