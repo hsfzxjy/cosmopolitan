@@ -611,6 +611,15 @@ for x in $ARGS; do
   if [ x"$x" != x"-" ] &&           # is alias for stdin
      [ x"$x" != x"${x#-*}" ]; then  # startswith(x, "-")
     # this argument is a flag
+    if [ x"$x" != x"${x#-Xlx86_64}" ]; then
+      x="${x#-Xlx86_64}"
+      LDARGS_X86_64="${LDARGS_X86_64} $x"
+      continue
+    elif [ x"$x" != x"${x#-Xlaarch64}" ]; then
+      x=${x#-Xlaarch64}
+      LDARGS_AARCH64="${LDARGS_AARCH64} $x"
+      continue
+    fi
     LDARGS_X86_64="${LDARGS_X86_64} $x"
     if [ x"$x" != x"${x#-L}" ]; then  # startswith(x, "-L")
       x="$x/.aarch64"
