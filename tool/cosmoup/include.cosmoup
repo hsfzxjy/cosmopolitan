@@ -1,0 +1,2 @@
+# This file should be bundled with include/ as include.zip
+link . . include

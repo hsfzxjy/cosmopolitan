@@ -1,0 +1,55 @@
+with https://github.com/hsfzxjy/cosmocc-repack/releases/download/superconfigure_z0.0.60_4.0.2-29-g1954c7872/x86_64-gcc.zip fs-only
+  exec . libexec/gcc/x86_64-linux-cosmo/14.1.0/collect2
+  exec . libexec/gcc/x86_64-linux-cosmo/14.1.0/ld
+  exec . libexec/gcc/x86_64-linux-cosmo/14.1.0/cc1plus
+  exec . libexec/gcc/x86_64-linux-cosmo/14.1.0/as
+  link . libexec/gcc/x86_64-linux-cosmo/14.1.0/install-tools
+  exec . libexec/gcc/x86_64-linux-cosmo/14.1.0/cc1
+  exec . libexec/gcc/x86_64-linux-cosmo/14.1.0/ld.bfd
+
+  exec . bin/x86_64-linux-cosmo-readelf
+  exec . bin/x86_64-linux-cosmo-ar
+  exec . bin/x86_64-linux-cosmo-c++filt
+  exec . bin/x86_64-linux-cosmo-gcc
+  exec . bin/x86_64-linux-cosmo-objdump
+  exec . bin/x86_64-linux-cosmo-g++
+  exec . bin/x86_64-linux-cosmo-addr2line
+  exec . bin/x86_64-linux-cosmo-objcopy
+  exec . bin/x86_64-linux-cosmo-nm
+  exec . bin/x86_64-linux-cosmo-ranlib
+  exec . bin/x86_64-linux-cosmo-elfedit
+  exec . bin/x86_64-linux-cosmo-as
+  exec . bin/x86_64-linux-cosmo-ld
+  exec . bin/x86_64-linux-cosmo-size
+  exec . bin/x86_64-linux-cosmo-ld.bfd
+  exec . bin/x86_64-linux-cosmo-c++
+  exec . bin/x86_64-linux-cosmo-strip
+end with
+
+with https://github.com/hsfzxjy/cosmocc-repack/releases/download/superconfigure_z0.0.60_4.0.2-29-g1954c7872/aarch64-gcc.zip fs-only
+  exec . libexec/gcc/aarch64-linux-cosmo/14.1.0/collect2
+  exec . libexec/gcc/aarch64-linux-cosmo/14.1.0/ld
+  exec . libexec/gcc/aarch64-linux-cosmo/14.1.0/cc1plus
+  exec . libexec/gcc/aarch64-linux-cosmo/14.1.0/as
+  link . libexec/gcc/aarch64-linux-cosmo/14.1.0/install-tools
+  exec . libexec/gcc/aarch64-linux-cosmo/14.1.0/cc1
+  exec . libexec/gcc/aarch64-linux-cosmo/14.1.0/ld.bfd
+
+  exec . bin/aarch64-linux-cosmo-readelf
+  exec . bin/aarch64-linux-cosmo-ar
+  exec . bin/aarch64-linux-cosmo-c++filt
+  exec . bin/aarch64-linux-cosmo-gcc
+  exec . bin/aarch64-linux-cosmo-objdump
+  exec . bin/aarch64-linux-cosmo-g++
+  exec . bin/aarch64-linux-cosmo-addr2line
+  exec . bin/aarch64-linux-cosmo-objcopy
+  exec . bin/aarch64-linux-cosmo-nm
+  exec . bin/aarch64-linux-cosmo-ranlib
+  exec . bin/aarch64-linux-cosmo-elfedit
+  exec . bin/aarch64-linux-cosmo-as
+  exec . bin/aarch64-linux-cosmo-ld
+  exec . bin/aarch64-linux-cosmo-size
+  exec . bin/aarch64-linux-cosmo-ld.bfd
+  exec . bin/aarch64-linux-cosmo-c++
+  exec . bin/aarch64-linux-cosmo-strip
+end with
