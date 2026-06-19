@@ -157,7 +157,7 @@
 #define LP LPWSTR
 #define PSHORT int16_t*
 #define PLONG int32_t*
-#define HANDLE int64_t
+#define HANDLE uintptr_t
 #define PHANDLE HANDLE*
 #define FCHAR BYTE
 #define FSHORT WORD
@@ -663,7 +663,7 @@
 #define FILE_SHARE_DELETE kNtFileShareDelete
 
 #include "libc/nt/runtime.h"
-#define INVALID_HANDLE_VALUE -1l
+#define INVALID_HANDLE_VALUE ((HANDLE)-1)
 #define STD_INPUT_HANDLE kNtStdInputHandle
 #define STD_OUTPUT_HANDLE kNtStdOutputHandle
 #define STD_ERROR_HANDLE kNtStdErrorHandle
