@@ -9,7 +9,7 @@ LIBC_THREAD_A = o/$(MODE)/libc/thread/thread.a
 LIBC_THREAD_A_FILES := $(wildcard libc/thread/*)
 LIBC_THREAD_A_HDRS = $(filter %.h,$(LIBC_THREAD_A_FILES))
 LIBC_THREAD_A_SRCS_C = $(filter %.c,$(LIBC_THREAD_A_FILES))
-LIBC_THREAD_A_SRCS_CC = $(filter %.cc,$(LIBC_THREAD_A_FILES))
+# LIBC_THREAD_A_SRCS_CC = $(filter %.cc,$(LIBC_THREAD_A_FILES))
 LIBC_THREAD_A_SRCS_S = $(filter %.S,$(LIBC_THREAD_A_FILES))
 
 LIBC_THREAD_A_SRCS =					\
