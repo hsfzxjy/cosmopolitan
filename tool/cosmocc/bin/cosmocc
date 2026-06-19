@@ -351,16 +351,19 @@ if [ $INTENT = ld ]; then
   use_gcc
 fi
 
+C_SUPPORT_VECTOR=255
 if [ x"$MODE" = x"sysv" ]; then
   SUPPORT_VECTOR=linux+mac+bsd
+  C_SUPPORT_VECTOR="121" #"(1+8+16+32+64)"
 elif [ x"$MODE" = x"optlinux" ] ||
      [ x"$MODE" = x"tinylinux" ]; then
   REDZONE=
   TLSFLAG=
   SUPPORT_VECTOR=linux
+  C_SUPPORT_VECTOR=1
 fi
 
-PLATFORM="-D__COSMOPOLITAN__ -D__COSMOCC__ -D__FATCOSMOCC__"
+PLATFORM="-D__COSMOPOLITAN__ -D__COSMOCC__ -D__FATCOSMOCC__ -DSUPPORT_VECTOR=$C_SUPPORT_VECTOR"
 PREDEF="-include libc/integral/normalize.inc"
 CPPFLAGS="-fno-pie -nostdinc -isystem $BIN/../include"
 CFLAGS="$FPORTCOSMO -fno-semantic-interposition"
