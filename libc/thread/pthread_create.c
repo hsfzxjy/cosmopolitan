@@ -190,12 +190,10 @@ static int PosixThread(void *arg) {
     void *ret = pt->pt_start(pt->pt_val);
     // ensure pthread_cleanup_pop(), and pthread_exit() popped cleanup
     unassert(!pt->pt_cleanup);
-    if (IsFreebsd()) {
-      const char *old_thr_name = atomic_exchange_explicit(
-          &pt->pt_freebsd_thr_name, 0, memory_order_acq_rel);
-      if (old_thr_name) {
-        free((void *)old_thr_name);
-      }
+    const char *old_thr_name =
+        atomic_exchange_explicit(&pt->pt_bsd_thr_name, 0, memory_order_acq_rel);
+    if (old_thr_name) {
+      free((void *)old_thr_name);
     }
     // calling pthread_exit() will either jump back here, or call exit
     pthread_exit(ret);

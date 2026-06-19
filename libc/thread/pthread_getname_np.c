@@ -77,7 +77,7 @@ static errno_t pthread_getname_impl(struct PosixThread *pt, char *name,
       return ERANGE;
     return 0;
 
-  } else if (IsNetbsd() || IsOpenbsd()) {
+  } else if (IsOpenbsd()) {
     int ax;
     char cf;
     long dx, si;
@@ -106,9 +106,9 @@ static errno_t pthread_getname_impl(struct PosixThread *pt, char *name,
       return __errno_host2linux(ax);
     }
 
-  } else if (IsFreebsd()) {
+  } else if (IsFreebsd() || IsNetbsd()) {
     const char *thr_name =
-        atomic_load_explicit(&pt->pt_freebsd_thr_name, memory_order_acquire);
+        atomic_load_explicit(&pt->pt_bsd_thr_name, memory_order_acquire);
     if (thr_name) {
       size_t len = strlen(thr_name);
       if (len < size) {
