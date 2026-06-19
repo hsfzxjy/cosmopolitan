@@ -164,6 +164,7 @@ $MAKE CONFIG_TARGET_ARCH= -j$NPROC m=$AMD64-tinylinux \
 
 $MAKE -j$NPROC m=$ARM64 \
   o/$ARM64/ape/ape.elf \
+  o/$ARM64/ape/ape.macho \
   o/$ARM64/ape/aarch64.lds \
   o/$ARM64/libc/crt/crt.o \
   o/$ARM64/libc/crt/crtfastmath.o \
@@ -198,6 +199,7 @@ $MAKE -j$NPROC m=$ARM64 \
 
 $MAKE -j$NPROC m=$ARM64-tiny \
   o/$ARM64-tiny/ape/ape.elf \
+  o/$ARM64-tiny/ape/ape.macho \
   o/$ARM64-tiny/ape/aarch64.lds \
   o/$ARM64-tiny/libc/crt/crt.o \
   o/$ARM64-tiny/libc/crt/crtfastmath.o \
@@ -206,6 +208,7 @@ $MAKE -j$NPROC m=$ARM64-tiny \
 
 $MAKE -j$NPROC m=$ARM64-sysv \
   o/$ARM64-sysv/ape/ape.elf \
+  o/$ARM64-sysv/ape/ape.macho \
   o/$ARM64-sysv/ape/aarch64.lds \
   o/$ARM64-sysv/libc/crt/crt.o \
   o/$ARM64-sysv/libc/crt/crtfastmath.o \
@@ -214,6 +217,7 @@ $MAKE -j$NPROC m=$ARM64-sysv \
 
 $MAKE -j$NPROC m=$ARM64-dbg \
   o/$ARM64-dbg/ape/ape.elf \
+  o/$ARM64-dbg/ape/ape.macho \
   o/$ARM64-dbg/ape/aarch64.lds \
   o/$ARM64-dbg/libc/crt/crt.o \
   o/$ARM64-dbg/libc/crt/crtfastmath.o \
@@ -222,6 +226,7 @@ $MAKE -j$NPROC m=$ARM64-dbg \
 
 $MAKE -j$NPROC m=$ARM64-optlinux \
   o/$ARM64-optlinux/ape/ape.elf \
+  o/$ARM64-optlinux/ape/ape.macho \
   o/$ARM64-optlinux/ape/aarch64.lds \
   o/$ARM64-optlinux/libc/crt/crt.o \
   o/$ARM64-optlinux/libc/crt/crtfastmath.o \
@@ -230,6 +235,7 @@ $MAKE -j$NPROC m=$ARM64-optlinux \
 
 $MAKE -j$NPROC m=$ARM64-tinylinux \
   o/$ARM64-tinylinux/ape/ape.elf \
+  o/$ARM64-tinylinux/ape/ape.macho \
   o/$ARM64-tinylinux/ape/aarch64.lds \
   o/$ARM64-tinylinux/libc/crt/crt.o \
   o/$ARM64-tinylinux/libc/crt/crtfastmath.o \
