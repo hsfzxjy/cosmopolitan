@@ -6,7 +6,7 @@
 #     zip -ry9 ../cosmocc.zip .
 #
 
-set -ex
+set -e
 
 mode() {
   case $(uname -m) in
@@ -327,7 +327,13 @@ cp -f o/$AMD64-optlinux/ape/ape-no-modify-self.o "$OUTDIR/x86_64-lib-optlinux/"
 cp -f o/$AMD64-tinylinux/ape/ape-no-modify-self.o "$OUTDIR/x86_64-lib-tinylinux/"
 
 cp -f ape/ape-m1.c "$OUTDIR/bin/"
-cp -af tool/cosmocc/bin/* "$OUTDIR/bin/"
+for x in tool/cosmocc/bin/*; do
+  if [ -L "$x" ]; then
+    echo "skipping symlink $x"
+    continue
+  fi
+  cp -f "$x" "$OUTDIR/bin/"
+done
 cp -f o/$AMD64/ape/ape.elf "$OUTDIR/bin/ape-x86_64.elf"
 cp -f o/$AMD64/ape/ape.macho "$OUTDIR/bin/ape-x86_64.macho"
 cp -f o/$ARM64/ape/ape.elf "$OUTDIR/bin/ape-aarch64.elf"
@@ -359,7 +365,8 @@ for x in make ctags; do
     o/$ARM64/third_party/$x/$x.dbg
 done
 
-cp -f tool/cosmoup/bin.cosmoup "$OUTDIR/bin/"
+# cp -f tool/cosmoup/bin.cosmoup "$OUTDIR/bin/"
+sh tool/cosmoup/bin.cosmoup.gen.sh "$OUTDIR/bin/" | sort >"$OUTDIR/bin/bin.cosmoup" || exit 1
 cp -f tool/cosmoup/gcc.cosmoup "$OUTDIR/"
 cp -f tool/cosmoup/include.cosmoup "$OUTDIR/include/"
 
@@ -370,6 +377,6 @@ for ARCH in aarch64 x86_64; do
     else
       LIB=lib-$VARIANT
     fi
-    sh tool/cosmoup/${ARCH}-lib.cosmoup.gen.sh "$VARIANT" >"$OUTDIR/$ARCH-$LIB/root.cosmoup"
+    sh tool/cosmoup/${ARCH}-lib.cosmoup.gen.sh "$VARIANT" >"$OUTDIR/$ARCH-$LIB/root.cosmoup" || exit 1
   done
 done

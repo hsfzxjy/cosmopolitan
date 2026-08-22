@@ -6,32 +6,24 @@
 BIN=${0%/*}
 PROG=${0##*/}
 ORIGINAL="$0 $*"
-GCC_VERSION=14.1.0
 TMPDIR=${TMPDIR:-/tmp}
 
+dispatch() {
+  local REAL_PROG="x86_64-linux-cosmo-$1"
+  shift
+  "$BIN/$REAL_PROG" "$@" |
+    sed "s!$REAL_PROG!$PROG!g" 2>/dev/null ||
+    "$BIN/$REAL_PROG" "$@"
+}
+
 if [ "$1" = "--version" ]; then
-cat <<EOF
-$PROG (GCC) $GCC_VERSION
-Copyright (c) 2024 Justine Alexandra Roberts Tunney
-Cosmopolitan Libc and LLVM libcxx/compiler-rt are subject to non-GPL
-notice licenses, e.g. ISC, MIT, etc. Your compiled programs must embed
-our copyright notices. This toolchain is configured to do so by default.
-Cosmopolitan comes with absolutely NO WARRANTY of any kind.
-For more information, see the Cosmopolitan LICENSE files.
-Copyright (C) 2022 Free Software Foundation, Inc.
-This launches GNU GCC/Binutils subprocesses, which is free software; see
-cosmocc's LICENSE files for source code and copying conditions. There is
-NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-EOF
-exit
+  dispatch gcc --version
+  exit
 fi
 
 if [ "$1" = "--help" ]; then
-  if [ -t 1 ]; then
-    exec less "$BIN/../README.md"
-  else
-    exec cat "$BIN/../README.md"
-  fi
+  dispatch gcc --help
+  exit
 fi
 
 TEMP_FILES=
@@ -177,13 +169,7 @@ for x; do
     NEED_DEPENDENCY_OUTPUT=1
     continue
   elif [ x"$x" = x"-Wl,--version" ]; then
-    cat <<EOF
-GNU ld (GNU Binutils) 2.42
-Copyright (C) 2024 Free Software Foundation, Inc.
-This program is free software; you may redistribute it under the terms of
-the GNU General Public License version 3 or (at your option) a later version.
-This program has absolutely no warranty.
-EOF
+    dispatch ld --version
     exit
   elif [ x"$x" != x"${x#-O}" ]; then  # startswith(x, "-O")
     OPT=$x
@@ -276,7 +262,7 @@ EOF
     FLAGS_AARCH64="$FLAGS_AARCH64 $x"
     continue
   elif [ x"$x" = x"-dumpversion" ]; then
-    echo $GCC_VERSION
+    dispatch gcc -dumpversion
     Exit 0
   elif [ x"$x" = x"-dumpmachine" ]; then
     echo "x86_64-unknown-cosmo"

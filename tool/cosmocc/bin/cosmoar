@@ -7,23 +7,21 @@ fatal_error() {
   exit 1
 }
 
+dispatch() {
+  local REAL_PROG="x86_64-linux-cosmo-$1"
+  shift
+  "$BIN/$REAL_PROG" "$@" |
+    sed "s!$REAL_PROG!$PROG!g" 2>/dev/null ||
+    "$BIN/$REAL_PROG" "$@"
+}
+
 AR_X86_64="$BIN/x86_64-linux-cosmo-ar"
 AR_AARCH64="$BIN/aarch64-linux-cosmo-ar"
 if [ "$1" = "--version" ]; then
-  # note: only the underlying gnu compiler binaries are gpl
-  #       our shell script is released with the isc license
-  cat <<EOF
-$PROG (GNU Binutils) 2.38
-Copyright (C) 2022 Free Software Foundation, Inc.
-This program is free software; you may redistribute it under the terms of
-the GNU General Public License version 3 or (at your option) any later version.
-This program has absolutely no warranty.
-EOF
+  dispatch ar --version
   exit 0
 elif [ "$1" = "--help" ]; then
-  "$AR_X86_64" --help |
-    sed "s!$AR_X86_64!$PROG!g" 2>/dev/null ||
-    "$AR_X86_64" --help
+  dispatch ar --help
   exit
 fi
 
