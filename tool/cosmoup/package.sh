@@ -380,3 +380,8 @@ for ARCH in aarch64 x86_64; do
     sh tool/cosmoup/${ARCH}-lib.cosmoup.gen.sh "$VARIANT" >"$OUTDIR/$ARCH-$LIB/root.cosmoup" || exit 1
   done
 done
+
+mkdir -p "$OUTDIR/zlib/"
+cp -f o/$AMD64/third_party/zlib/zlib.a "$OUTDIR/zlib/$AMD64-libz.a"
+cp -f o/$ARM64/third_party/zlib/zlib.a "$OUTDIR/zlib/$ARM64-libz.a"
+cp -f tool/cosmoup/zlib.cosmoup "$OUTDIR/zlib/"

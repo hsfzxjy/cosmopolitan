@@ -1,0 +1,2 @@
+link . x86_64-libz.a x86_64-linux-cosmo/lib/libz.a
+link . aarch64-libz.a aarch64-linux-cosmo/lib/libz.a
